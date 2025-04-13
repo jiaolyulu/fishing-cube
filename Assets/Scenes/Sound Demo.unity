@@ -450,7 +450,7 @@ Transform:
   m_GameObject: {fileID: 522692733}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.15, z: 0}
+  m_LocalPosition: {x: 0, y: 1.821, z: 0}
   m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1248,8 +1248,10 @@ MonoBehaviour:
   splashInSlow: {fileID: 8300000, guid: 2106ef02586c9425c92739036bdce5a4, type: 3}
   splashOut: {fileID: 8300000, guid: 2106ef02586c9425c92739036bdce5a4, type: 3}
   splashOutSlow: {fileID: 8300000, guid: 1596f6868848b4e5ba5d42945adb0fc4, type: 3}
+  waterFlow: {fileID: 8300000, guid: 08e05a7380f8b9d45a67fd17a9dabad7, type: 3}
   baitSinking: {fileID: 8300000, guid: d1d205707c0a14996b5655c97fb684ba, type: 3}
   poleClicking: {fileID: 8300000, guid: 79f3c58cafd4e487187a72d7b60ea796, type: 3}
+  collisionCooldown: 2
 --- !u!81 &1831926135
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1396,27 +1398,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   webCamTexture: {fileID: 0}
-  preferredDevice: 
-  requestedWidth: 640
+  preferredDevice: USB Camera
+  requestedWidth: 480
   requestedHeight: 480
   requestedFPS: 30
   hasTarget: 1
   minAreaSize: 1600
   clusterSize: 3
-  colorThreshold: 100
-  colorDominanceThreshold: 50
-  trackingColor: 3
+  colorThreshold: 80
+  colorDominanceThreshold: 39
+  trackingColor: 0
   targetObject: {fileID: 1831926131}
-  movementSpeed: 1
+  movementSpeed: 4
   screenBounds: {x: 1, y: 1}
   minY: 0
-  maxY: 2
-  minAreaPixels: 1600
+  maxY: 3
+  minAreaPixels: 36
   maxAreaPixels: 10000
   positionUpdateInterval: 0.05
   minMovementThreshold: 0.01
   positionSmoothing: 0.5
   areaSizeSmoothing: 0.5
+  yOffsetCompensation: 0.1
+  xzOffsetCompensation: 0.4
   showDebugInfo: 1
 --- !u!4 &2069792161
 Transform:
