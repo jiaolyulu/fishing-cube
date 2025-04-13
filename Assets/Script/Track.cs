@@ -10,6 +10,8 @@ public class ColorAreaTracker : MonoBehaviour
     public int requestedHeight = 480;
     public int requestedFPS = 30;
 
+    public bool hasTarget = true;
+
     [Header("Detection Settings")]
     public int minAreaSize = 9; // Minimum number of colored pixels in area
     public int clusterSize = 3; // Size of cluster (3x3)
@@ -17,13 +19,13 @@ public class ColorAreaTracker : MonoBehaviour
     public int colorThreshold = 100; // How strong a color needs to be
     [Range(0, 255)]
     public int colorDominanceThreshold = 50; // How much stronger than other channels
-    
+
     public enum TrackingColor { Red, Green, Blue, Auto }
     public TrackingColor trackingColor = TrackingColor.Auto;
 
     [Header("Object To Move")]
     public Transform targetObject;
-    
+
     [Header("Movement Settings")]
     public float movementSpeed = 5.0f;
     public Vector2 screenBounds = new Vector2(5, 5);
@@ -31,33 +33,37 @@ public class ColorAreaTracker : MonoBehaviour
     public float maxY = 5f; // Maximum Y position
     public int minAreaPixels = 9; // Area size that maps to minY
     public int maxAreaPixels = 100; // Area size that maps to maxY
-    
+
     [Header("Debounce Settings")]
     public float positionUpdateInterval = 0.05f; // Time between position updates in seconds
     public float minMovementThreshold = 0.01f; // Minimum position change to trigger an update
     public float positionSmoothing = 0.5f; // 0 = no smoothing, 1 = max smoothing
     public float areaSizeSmoothing = 0.5f; // Smoothing for area size changes
-    
+    public float yOffsetCompensation = 0.1f;
+    public float xzOffsetCompensation = 0.4f;
+
+
     [Header("Debug")]
     public bool showDebugInfo = true;
-    
+
     // The detected position of the most significant color area
     private Vector2 colorAreaPosition;
     private Vector2 smoothedPosition;
     private Vector2 lastUpdatedPosition;
+    private float distanceToCenter;
     private TrackingColor detectedColor = TrackingColor.Red;
-    
+
     // Store the size of the detected area
     private int detectedAreaSize = 0;
     private int smoothedAreaSize = 0;
-    
+
     // Store analyzed pixel data
     private Color32[] pixelData;
     private bool isProcessing = false;
-    
+
     // Debounce timer
     private float lastUpdateTime = 0f;
-    
+
     void Start()
     {
         // List available webcams
@@ -66,7 +72,7 @@ public class ColorAreaTracker : MonoBehaviour
         {
             Debug.Log("- " + device.name);
         }
-        
+
         // If no specific device requested, use the first available
         if (string.IsNullOrEmpty(preferredDevice))
         {
@@ -81,32 +87,33 @@ public class ColorAreaTracker : MonoBehaviour
                 return;
             }
         }
-        
+
         // Initialize webcam texture
         webCamTexture = new WebCamTexture(preferredDevice, requestedWidth, requestedHeight, requestedFPS);
         webCamTexture.Play();
-        
+
         // Wait for webcam to start
         if (!webCamTexture.isPlaying)
         {
             Debug.LogError("Failed to start webcam!");
             return;
         }
-        
+
         // Initialize pixel data array
         pixelData = new Color32[webCamTexture.width * webCamTexture.height];
-        
+
         // Initialize positions
         colorAreaPosition = new Vector2(0.5f, 0.5f);
         smoothedPosition = colorAreaPosition;
+        
         lastUpdatedPosition = colorAreaPosition;
         detectedAreaSize = minAreaSize;
         smoothedAreaSize = minAreaSize;
-        
+
         // Log webcam details
         Debug.Log($"Webcam initialized: {webCamTexture.width}x{webCamTexture.height} at {webCamTexture.requestedFPS}fps");
     }
-    
+
     void Update()
     {
         if (webCamTexture != null && webCamTexture.isPlaying)
@@ -116,28 +123,28 @@ public class ColorAreaTracker : MonoBehaviour
             {
                 StartCoroutine(ProcessImageData());
             }
-            
+
             // Apply smoothing to the color area position and size
             ApplySmoothing();
-            
+
             // Move the target object based on the smoothed position and area size
             MoveTargetObject();
         }
     }
-    
+
     System.Collections.IEnumerator ProcessImageData()
     {
         isProcessing = true;
-        
+
         // Get the current frame's pixel data
         webCamTexture.GetPixels32(pixelData);
-        
+
         // Wait for the end of frame to free up main thread
         yield return new WaitForEndOfFrame();
-        
+
         // Find the most significant color area
         FindColorArea();
-        
+
         // Mark processing as done
         isProcessing = false;
     }
@@ -147,20 +154,20 @@ public class ColorAreaTracker : MonoBehaviour
         switch (color)
         {
             case TrackingColor.Red:
-                return (pixel.r > colorThreshold && 
-                        pixel.r > pixel.g + colorDominanceThreshold && 
+                return (pixel.r > colorThreshold &&
+                        pixel.r > pixel.g + colorDominanceThreshold &&
                         pixel.r > pixel.b + colorDominanceThreshold);
-            
+
             case TrackingColor.Green:
-                return (pixel.g > colorThreshold && 
-                        pixel.g > pixel.r + colorDominanceThreshold && 
+                return (pixel.g > colorThreshold &&
+                        pixel.g > pixel.r + colorDominanceThreshold &&
                         pixel.g > pixel.b + colorDominanceThreshold);
-                
+
             case TrackingColor.Blue:
-                return (pixel.b > colorThreshold && 
-                        pixel.b > pixel.r + colorDominanceThreshold && 
+                return (pixel.b > colorThreshold &&
+                        pixel.b > pixel.r + colorDominanceThreshold &&
                         pixel.b > pixel.g + colorDominanceThreshold);
-                
+
             default:
                 return false;
         }
@@ -218,7 +225,7 @@ public class ColorAreaTracker : MonoBehaviour
         }
         return Vector2.zero;
     }
-    
+
     void FindColorArea()
     {
         int width = webCamTexture.width;
@@ -271,12 +278,14 @@ public class ColorAreaTracker : MonoBehaviour
             if (ShouldUpdatePosition(newPosition))
             {
                 colorAreaPosition = newPosition;
+
                 lastUpdatedPosition = colorAreaPosition;
                 lastUpdateTime = Time.time;
                 detectedAreaSize = maxSize;
             }
 
             detectedColor = maxAreaColor;
+            hasTarget = true;
             if (showDebugInfo)
             {
                 Debug.Log($"{maxAreaColor} area found at: ({maxAreaPosition.x}, {maxAreaPosition.y}) with {maxSize} pixels");
@@ -285,44 +294,47 @@ public class ColorAreaTracker : MonoBehaviour
         else if (showDebugInfo)
         {
             Debug.Log("No significant color area found");
+            hasTarget = false;
         }
     }
-    
+
     bool ShouldUpdatePosition(Vector2 newPosition)
     {
         // Check if enough time has passed since the last update
         bool timeElapsed = (Time.time - lastUpdateTime) >= positionUpdateInterval;
-        
+
         // Check if the position has changed significantly
         bool significantChange = Vector2.Distance(newPosition, lastUpdatedPosition) >= minMovementThreshold;
-        
+
         return timeElapsed && significantChange;
     }
-    
+
     void ApplySmoothing()
     {
         // Apply exponential smoothing to the position
         smoothedPosition = Vector2.Lerp(smoothedPosition, colorAreaPosition, 1.0f - positionSmoothing);
-        
+        distanceToCenter = (smoothedPosition - new Vector2(0.5f, 0.5f)).sqrMagnitude;
+
         // Apply exponential smoothing to the area size
         smoothedAreaSize = Mathf.RoundToInt(Mathf.Lerp(smoothedAreaSize, detectedAreaSize, 1.0f - areaSizeSmoothing));
     }
-    
+
     void MoveTargetObject()
     {
         if (targetObject != null)
         {
             // Calculate the Y position based on the area size
             float normalizedSize = Mathf.InverseLerp(minAreaPixels, maxAreaPixels, smoothedAreaSize);
-            float yPosition = Mathf.Lerp(maxY, minY, normalizedSize);
-            
+            float yPosFactor =  Mathf.Lerp(1.0f, 0.0f, normalizedSize);
+            float yPosition = Mathf.Lerp(maxY, minY, normalizedSize)+distanceToCenter*yOffsetCompensation;
+
             // Map the smoothed position (0-1) to our world space bounds
             Vector3 targetPosition = new Vector3(
-                Mathf.Lerp(screenBounds.x, -screenBounds.x, smoothedPosition.x),
+                Mathf.Lerp(screenBounds.x, -screenBounds.x, smoothedPosition.x)*(1.0f+xzOffsetCompensation*yPosFactor),
                 yPosition,
-                Mathf.Lerp(-screenBounds.y, screenBounds.y, smoothedPosition.y)
+                Mathf.Lerp(-screenBounds.y, screenBounds.y, smoothedPosition.y)*(1.0f+xzOffsetCompensation*yPosFactor)
             );
-            
+
             // Smoothly move the object towards the target position
             targetObject.position = Vector3.Lerp(
                 targetObject.position,
@@ -331,7 +343,7 @@ public class ColorAreaTracker : MonoBehaviour
             );
         }
     }
-    
+
     void OnGUI()
     {
         if (showDebugInfo)
@@ -340,11 +352,11 @@ public class ColorAreaTracker : MonoBehaviour
             int displayWidth = 160;
             int displayHeight = 120;
             GUI.DrawTexture(new Rect(10, 10, displayWidth, displayHeight), webCamTexture);
-            
+
             // Draw a marker for the detected position
             int markerX = Mathf.RoundToInt(10 + smoothedPosition.x * displayWidth);
-            int markerY = Mathf.RoundToInt(10 + (1-smoothedPosition.y) * displayHeight);
-            
+            int markerY = Mathf.RoundToInt(10 + (1 - smoothedPosition.y) * displayHeight);
+
             // Set marker color based on detected color
             switch (detectedColor)
             {
@@ -361,25 +373,25 @@ public class ColorAreaTracker : MonoBehaviour
                     GUI.color = Color.yellow;
                     break;
             }
-            
+
             // Draw marker with size proportional to detected area
             float markerSize = Mathf.Lerp(5, 20, Mathf.InverseLerp(minAreaPixels, maxAreaPixels, smoothedAreaSize));
-            GUI.DrawTexture(new Rect(markerX - markerSize/2, markerY - markerSize/2, markerSize, markerSize), Texture2D.whiteTexture);
-            
+            GUI.DrawTexture(new Rect(markerX - markerSize / 2, markerY - markerSize / 2, markerSize, markerSize), Texture2D.whiteTexture);
+
             // Display coordinates, detected color, and area size
             GUI.color = Color.white;
-            GUI.Label(new Rect(10, displayHeight + 20, 300, 20), 
+            GUI.Label(new Rect(10, displayHeight + 20, 300, 20),
                 $"{detectedColor} area position: ({smoothedPosition.x:F2}, {smoothedPosition.y:F2})");
-            GUI.Label(new Rect(10, displayHeight + 40, 300, 20), 
+            GUI.Label(new Rect(10, displayHeight + 40, 300, 20),
                 $"Area size: {smoothedAreaSize} pixels (Y position: {targetObject?.position.y:F2})");
-            
+
             // Display debounce status
-            string debounceStatus = (Time.time - lastUpdateTime < positionUpdateInterval) ? 
+            string debounceStatus = (Time.time - lastUpdateTime < positionUpdateInterval) ?
                 "Debouncing" : "Ready for update";
             GUI.Label(new Rect(10, displayHeight + 60, 300, 20), debounceStatus);
         }
     }
-    
+
     void OnDestroy()
     {
         // Clean up resources
