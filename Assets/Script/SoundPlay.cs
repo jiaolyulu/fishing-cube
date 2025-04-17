@@ -1,35 +1,49 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class SoundPlay : MonoBehaviour
 {
     public AudioClip splashIn;
-
-    public AudioClip splashInSlow; // todo: dynamic modify when underwater - low pass filter / EQ
-
+    public AudioClip splashInSlow;
     public AudioClip splashOut;
-
     public AudioClip splashOutSlow;
-
     public AudioClip waterFlow;
-
     public AudioClip baitSinking;
+    public AudioClip poleClicking; // @todo: fade out when sinking
 
-    public AudioClip poleClicking; // todo: fade out when sinking
+    public AudioMixer underwaterEQ;
 
-    private AudioSource audioSource;
-
+    protected AudioSource audioSource;
     private Vector3 lastPosition;
-
     private Vector3 velocity;
 
     private float lastCollisionTime = -999f;
-
     public float collisionCooldown = 1f;
 
     void Start()
     {
-        audioSource = gameObject.AddComponent<AudioSource>();
+        SetUpAudioMixer();
+
         lastPosition = transform.position;
+    }
+
+    // @todo: Expose parameter, change audio mix dynamiclly
+    //
+    // @param: pitch (<depth), fade (<depth), frequency (<depth)
+    //
+    void SetUpAudioMixer()
+    {
+        audioSource = gameObject.AddComponent<AudioSource>();
+        AudioMixerGroup[] groups = underwaterEQ.FindMatchingGroups("EQ-Underwater");
+
+        if (groups.Length > 0)
+        {
+            audioSource.outputAudioMixerGroup = groups[0];
+        }
+        else 
+        {
+            Debug.LogError("Audio mixer underwater is not found. Did you change the name?");
+        }
     }
 
     void Update()

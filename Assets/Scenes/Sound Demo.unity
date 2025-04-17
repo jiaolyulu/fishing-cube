@@ -1251,6 +1251,7 @@ MonoBehaviour:
   waterFlow: {fileID: 8300000, guid: 08e05a7380f8b9d45a67fd17a9dabad7, type: 3}
   baitSinking: {fileID: 8300000, guid: d1d205707c0a14996b5655c97fb684ba, type: 3}
   poleClicking: {fileID: 8300000, guid: 79f3c58cafd4e487187a72d7b60ea796, type: 3}
+  underwaterEQ: {fileID: 24100000, guid: 8a7687e6bdabd4be7a3154891975cdeb, type: 2}
   collisionCooldown: 2
 --- !u!81 &1831926135
 AudioListener:
@@ -1384,7 +1385,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2069792160
 MonoBehaviour:
   m_ObjectHideFlags: 0
