@@ -3,6 +3,7 @@ using UnityEngine.Audio;
 
 public class SoundPlay : MonoBehaviour
 {
+    [Header("Sound Clips")]
     public AudioClip splashIn;
     public AudioClip splashInSlow;
     public AudioClip splashOut;
@@ -11,20 +12,31 @@ public class SoundPlay : MonoBehaviour
     public AudioClip baitSinking;
     public AudioClip poleClicking; // @todo: fade out when sinking
 
+    [Header("EQ Settings")]
     public AudioMixer underwaterEQ;
 
     protected AudioSource audioSource;
     private Vector3 lastPosition;
     private Vector3 velocity;
 
+    [Header("Underwater Radio")]
+    private AudioSource radioSource; // on main camera
+    public float maxRadioDistance = 1.5f;
+
+    [Header("Other Settings")]
     private float lastCollisionTime = -999f;
-    public float collisionCooldown = 1f;
+    public float waterSurfaceSplashCooldown = 1f;
+    private bool isUnderwater = false;
+    private Transform waterSurfaceTransform;
 
     void Start()
     {
         SetUpAudioMixer();
+        SetUpRadioSound();
 
         lastPosition = transform.position;
+
+        waterSurfaceTransform = GameObject.FindWithTag("WaterSurface").transform;
     }
 
     // @todo: Expose parameter, change audio mix dynamiclly
@@ -40,9 +52,18 @@ public class SoundPlay : MonoBehaviour
         {
             audioSource.outputAudioMixerGroup = groups[0];
         }
-        else 
+        else
         {
             Debug.LogError("Audio mixer underwater is not found. Did you change the name?");
+        }
+    }
+
+    void SetUpRadioSound()
+    {
+        radioSource = Camera.main.GetComponent<AudioSource>();
+        if (radioSource == null) 
+        {
+            Debug.LogError("Radio sound is not attached to main camera!");
         }
     }
 
@@ -51,6 +72,25 @@ public class SoundPlay : MonoBehaviour
         // 計算物體的速度
         velocity = (transform.position - lastPosition) / Time.deltaTime;
         lastPosition = transform.position;
+
+        // 计算是否在水下
+        isUnderwater = transform.position.y < waterSurfaceTransform.position.y;
+
+        UpdateRadioSource();
+    }
+
+    void UpdateRadioSource()
+    {
+        // 如果在水上，则不播放 radio
+        if (!isUnderwater) 
+        {
+            radioSource.volume = 0f;
+            return;
+        }
+
+        // 根据距离调整 radio 的音量。
+        float dist = Vector3.Distance(transform.position, Camera.main.transform.position);
+        radioSource.volume = Mathf.Clamp01(1f - (dist / maxRadioDistance));
     }
 
     void OnCollisionEnter(Collision collision)
@@ -75,7 +115,7 @@ public class SoundPlay : MonoBehaviour
         Debug.Log("hit invisible object.");
         float currentTime = Time.time;
         bool collisionTooSoon =
-            (currentTime - lastCollisionTime) < collisionCooldown;
+            (currentTime - lastCollisionTime) < waterSurfaceSplashCooldown;
 
         if (collisionTooSoon)
         {
