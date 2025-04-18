@@ -21,12 +21,14 @@ public class SoundPlay : MonoBehaviour
 
     [Header("Underwater Radio")]
     private AudioSource radioSource; // on main camera
-    public float maxRadioDistance = 1.5f;
+    public float maxRadioDistance = 1.8f;
+    private AudioSource outwaterSource; // on pond object
 
     [Header("Other Settings")]
     private float lastCollisionTime = -999f;
     public float waterSurfaceSplashCooldown = 1f;
     private bool isUnderwater = false;
+    private float underwaterDepth = 0f;
     private Transform waterSurfaceTransform;
 
     void Start()
@@ -61,10 +63,10 @@ public class SoundPlay : MonoBehaviour
     void SetUpRadioSound()
     {
         radioSource = Camera.main.GetComponent<AudioSource>();
-        if (radioSource == null) 
-        {
-            Debug.LogError("Radio sound is not attached to main camera!");
-        }
+        if (radioSource == null) { Debug.LogError("Radio sound is not attached to main camera!"); }
+
+        outwaterSource = GameObject.Find("OutWaterSound").GetComponent<AudioSource>();
+        if (outwaterSource == null)  { Debug.LogError("Out water sound is not attached. Did you change the name?"); }
     }
 
     void Update()
@@ -75,8 +77,10 @@ public class SoundPlay : MonoBehaviour
 
         // 计算是否在水下
         isUnderwater = transform.position.y < waterSurfaceTransform.position.y;
+        underwaterDepth = Mathf.Clamp01(waterSurfaceTransform.position.y - transform.position.y);
 
         UpdateRadioSource();
+        UpdateOutwaterSource();
     }
 
     void UpdateRadioSource()
@@ -84,13 +88,36 @@ public class SoundPlay : MonoBehaviour
         // 如果在水上，则不播放 radio
         if (!isUnderwater) 
         {
+            // Debug.Log("not underwater, not playing radio.");
             radioSource.volume = 0f;
+            radioSource.Stop();
             return;
         }
+        if (!radioSource.isPlaying) radioSource.Play();
 
-        // 根据距离调整 radio 的音量。
+        // 根据距离调整 radio 的音量
         float dist = Vector3.Distance(transform.position, Camera.main.transform.position);
-        radioSource.volume = Mathf.Clamp01(1f - (dist / maxRadioDistance));
+        float distRatio = Mathf.Clamp01(1f - (dist / maxRadioDistance)) * 0.6f;
+        radioSource.volume = distRatio;
+        radioSource.pitch = 2f - Mathf.Clamp01(underwaterDepth / 2f);
+        // Debug.Log("underwater, radio distance: " + dist + ", max: " + maxRadioDistance + ", volume: " + radioSource.volume);
+    }
+
+    void UpdateOutwaterSource()
+    {
+        if (!outwaterSource.isPlaying) outwaterSource.Play();
+
+        // 根据水面的距离调整音量
+        if (isUnderwater) 
+        {
+            float dist = Vector3.Distance(transform.position, waterSurfaceTransform.position);
+            float distRatio = Mathf.Clamp01(1f - (dist / 1.2f));
+            outwaterSource.volume = 0.3f * distRatio;
+            outwaterSource.pitch = 0.3f * distRatio;
+        } else {
+            outwaterSource.volume = 0.3f;
+            outwaterSource.pitch = 1f;
+        }
     }
 
     void OnCollisionEnter(Collision collision)
@@ -119,8 +146,7 @@ public class SoundPlay : MonoBehaviour
 
         if (collisionTooSoon)
         {
-            Debug
-                .Log("Collision flagged: happened too soon after the last one.");
+            Debug.Log("Collision flagged: happened too soon after the last one.");
             clipToPlay = waterFlow;
         }
         else
