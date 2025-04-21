@@ -1,0 +1,16 @@
+{
+    "printWidth": 120,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": false,
+    "bracketSpacing": true,
+    "arrowParens": "avoid",
+    "endOfLine": "auto",
+    "embeddedLanguageFormatting": "auto",
+    "proseWrap": "preserve",
+    "singleAttributePerLine": false,
+    "bracketSameLine": true,
+    "csharpStringStyle": "double",
+    "csharpMultiLineStringStyle": "string-concat"
+  }

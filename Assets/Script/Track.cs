@@ -1,26 +1,40 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class ColorAreaTracker : MonoBehaviour
 {
     [Header("Camera Settings")]
     public WebCamTexture webCamTexture;
+
     public string preferredDevice = "";
+
     public int requestedWidth = 640;
+
     public int requestedHeight = 480;
+
     public int requestedFPS = 30;
 
     public bool hasTarget = true;
 
     [Header("Detection Settings")]
     public int minAreaSize = 9; // Minimum number of colored pixels in area
+
     public int clusterSize = 3; // Size of cluster (3x3)
+
     [Range(0, 255)]
     public int colorThreshold = 100; // How strong a color needs to be
+
     [Range(0, 255)]
     public int colorDominanceThreshold = 50; // How much stronger than other channels
 
-    public enum TrackingColor { Red, Green, Blue, Auto }
+    public enum TrackingColor
+    {
+        Red,
+        Green,
+        Blue,
+        Auto
+    }
+
     public TrackingColor trackingColor = TrackingColor.Auto;
 
     [Header("Object To Move")]
@@ -28,37 +42,58 @@ public class ColorAreaTracker : MonoBehaviour
 
     [Header("Movement Settings")]
     public float movementSpeed = 5.0f;
+
     public Vector2 screenBounds = new Vector2(5, 5);
+
     public float minY = 0f; // Minimum Y position
+
+    public float surfaceY = 1.5f;
+
     public float maxY = 5f; // Maximum Y position
+
     public int minAreaPixels = 9; // Area size that maps to minY
+
+    public int surfaceAreaPixels = 40; // Area size that maps to water surface
+
     public int maxAreaPixels = 100; // Area size that maps to maxY
+
+    public int areaUnit = 1000;
 
     [Header("Debounce Settings")]
     public float positionUpdateInterval = 0.05f; // Time between position updates in seconds
-    public float minMovementThreshold = 0.01f; // Minimum position change to trigger an update
-    public float positionSmoothing = 0.5f; // 0 = no smoothing, 1 = max smoothing
-    public float areaSizeSmoothing = 0.5f; // Smoothing for area size changes
-    public float yOffsetCompensation = 0.1f;
-    public float xzOffsetCompensation = 0.4f;
 
+    public float minMovementThreshold = 0.01f; // Minimum position change to trigger an update
+
+    public float positionSmoothing = 0.5f; // 0 = no smoothing, 1 = max smoothing
+
+    public float areaSizeSmoothing = 0.5f; // Smoothing for area size changes
+
+    public float yOffsetCompensation = 0.1f;
+
+    public float xzOffsetCompensation = 0.4f;
 
     [Header("Debug")]
     public bool showDebugInfo = true;
 
     // The detected position of the most significant color area
     private Vector2 colorAreaPosition;
+
     private Vector2 smoothedPosition;
+
     private Vector2 lastUpdatedPosition;
+
     private float distanceToCenter;
+
     private TrackingColor detectedColor = TrackingColor.Red;
 
     // Store the size of the detected area
     private int detectedAreaSize = 0;
+
     private int smoothedAreaSize = 0;
 
     // Store analyzed pixel data
     private Color32[] pixelData;
+
     private bool isProcessing = false;
 
     // Debounce timer
@@ -105,13 +140,16 @@ public class ColorAreaTracker : MonoBehaviour
         // Initialize positions
         colorAreaPosition = new Vector2(0.5f, 0.5f);
         smoothedPosition = colorAreaPosition;
-        
+
         lastUpdatedPosition = colorAreaPosition;
         detectedAreaSize = minAreaSize;
         smoothedAreaSize = minAreaSize;
 
         // Log webcam details
-        Debug.Log($"Webcam initialized: {webCamTexture.width}x{webCamTexture.height} at {webCamTexture.requestedFPS}fps");
+        Debug
+            .Log("Webcam initialized: " +
+            $"{webCamTexture.width}x{webCamTexture.height}" +
+            $" at {webCamTexture.requestedFPS}fps");
     }
 
     void Update()
@@ -137,7 +175,7 @@ public class ColorAreaTracker : MonoBehaviour
         isProcessing = true;
 
         // Get the current frame's pixel data
-        webCamTexture.GetPixels32(pixelData);
+        webCamTexture.GetPixels32 (pixelData);
 
         // Wait for the end of frame to free up main thread
         yield return new WaitForEndOfFrame();
@@ -154,26 +192,30 @@ public class ColorAreaTracker : MonoBehaviour
         switch (color)
         {
             case TrackingColor.Red:
-                return (pixel.r > colorThreshold &&
-                        pixel.r > pixel.g + colorDominanceThreshold &&
-                        pixel.r > pixel.b + colorDominanceThreshold);
-
+                return (
+                pixel.r > colorThreshold &&
+                pixel.r > pixel.g + colorDominanceThreshold &&
+                pixel.r > pixel.b + colorDominanceThreshold
+                );
             case TrackingColor.Green:
-                return (pixel.g > colorThreshold &&
-                        pixel.g > pixel.r + colorDominanceThreshold &&
-                        pixel.g > pixel.b + colorDominanceThreshold);
-
+                return (
+                pixel.g > colorThreshold &&
+                pixel.g > pixel.r + colorDominanceThreshold &&
+                pixel.g > pixel.b + colorDominanceThreshold
+                );
             case TrackingColor.Blue:
-                return (pixel.b > colorThreshold &&
-                        pixel.b > pixel.r + colorDominanceThreshold &&
-                        pixel.b > pixel.g + colorDominanceThreshold);
-
+                return (
+                pixel.b > colorThreshold &&
+                pixel.b > pixel.r + colorDominanceThreshold &&
+                pixel.b > pixel.g + colorDominanceThreshold
+                );
             default:
                 return false;
         }
     }
 
-    Vector2 FloodFill(int startX, int startY, int width, int height, TrackingColor color, bool[] visited, ref int areaSize)
+    Vector2
+    FloodFill(int startX, int startY, int width, int height, TrackingColor color, bool[] visited, ref int areaSize)
     {
         Queue<Vector2Int> queue = new Queue<Vector2Int>();
         List<Vector2Int> pixels = new List<Vector2Int>();
@@ -190,19 +232,19 @@ public class ColorAreaTracker : MonoBehaviour
             int x = pixel.x;
             int y = pixel.y;
 
-            pixels.Add(pixel);
+            pixels.Add (pixel);
             sumX += x;
             sumY += y;
             areaSize++;
 
             // Check 4 neighboring pixels (up, down, left, right)
-            Vector2Int[] neighbors = new Vector2Int[]
-            {
-                new Vector2Int(x, y - 1),
-                new Vector2Int(x, y + 1),
-                new Vector2Int(x - 1, y),
-                new Vector2Int(x + 1, y)
-            };
+            Vector2Int[] neighbors =
+                new Vector2Int[] {
+                    new Vector2Int(x, y - 1),
+                    new Vector2Int(x, y + 1),
+                    new Vector2Int(x - 1, y),
+                    new Vector2Int(x + 1, y)
+                };
 
             foreach (var neighbor in neighbors)
             {
@@ -210,10 +252,16 @@ public class ColorAreaTracker : MonoBehaviour
                 int ny = neighbor.y;
                 int nIndex = ny * width + nx;
 
-                if (nx >= 0 && ny >= 0 && nx < width && ny < height &&
-                    !visited[nIndex] && IsColoredPixel(pixelData[nIndex], color))
+                if (
+                    nx >= 0 &&
+                    ny >= 0 &&
+                    nx < width &&
+                    ny < height &&
+                    !visited[nIndex] &&
+                    IsColoredPixel(pixelData[nIndex], color)
+                )
                 {
-                    queue.Enqueue(neighbor);
+                    queue.Enqueue (neighbor);
                     visited[nIndex] = true;
                 }
             }
@@ -221,7 +269,7 @@ public class ColorAreaTracker : MonoBehaviour
 
         if (areaSize > 0)
         {
-            return new Vector2(sumX / (float)areaSize, sumY / (float)areaSize);
+            return new Vector2(sumX / (float) areaSize, sumY / (float) areaSize);
         }
         return Vector2.zero;
     }
@@ -232,9 +280,10 @@ public class ColorAreaTracker : MonoBehaviour
         int height = webCamTexture.height;
 
         TrackingColor bestColor = detectedColor;
-        TrackingColor[] colorsToCheck = (trackingColor == TrackingColor.Auto)
-            ? new TrackingColor[] { TrackingColor.Red, TrackingColor.Green, TrackingColor.Blue }
-            : new TrackingColor[] { trackingColor };
+        TrackingColor[] colorsToCheck =
+            (trackingColor == TrackingColor.Auto)
+                ? new TrackingColor[] { TrackingColor.Red, TrackingColor.Green, TrackingColor.Blue }
+                : new TrackingColor[] { trackingColor };
 
         bool[] visited = new bool[pixelData.Length]; // Track visited pixels
         int maxSize = 0;
@@ -270,10 +319,7 @@ public class ColorAreaTracker : MonoBehaviour
         // If we found a valid colored area
         if (maxSize >= minAreaSize)
         {
-            Vector2 newPosition = new Vector2(
-                maxAreaPosition.x / width,
-                maxAreaPosition.y / height
-            );
+            Vector2 newPosition = new Vector2(maxAreaPosition.x / width, maxAreaPosition.y / height);
 
             if (ShouldUpdatePosition(newPosition))
             {
@@ -288,7 +334,10 @@ public class ColorAreaTracker : MonoBehaviour
             hasTarget = true;
             if (showDebugInfo)
             {
-                Debug.Log($"{maxAreaColor} area found at: ({maxAreaPosition.x}, {maxAreaPosition.y}) with {maxSize} pixels");
+                Debug
+                    .Log($"{maxAreaColor} area found at: " +
+                    $"({maxAreaPosition.x}, {maxAreaPosition.y}) " +
+                    $"with {maxSize} pixels");
             }
         }
         else if (showDebugInfo)
@@ -323,24 +372,47 @@ public class ColorAreaTracker : MonoBehaviour
     {
         if (targetObject != null)
         {
-            // Calculate the Y position based on the area size
-            float normalizedSize = Mathf.InverseLerp(minAreaPixels, maxAreaPixels, smoothedAreaSize);
-            float yPosFactor =  Mathf.Lerp(1.0f, 0.0f, normalizedSize);
-            float yPosition = Mathf.Lerp(maxY, minY, normalizedSize)+distanceToCenter*yOffsetCompensation;
+            float surfaceYFraction = (surfaceY - minY) / (maxY - minY);
+            float
+                yPosFactor,
+                yPosition;
+
+            if (smoothedAreaSize <= areaUnit * surfaceAreaPixels)
+            {
+                // Calculate the Y position based on the area size
+                float normalizedSize =
+                    Mathf
+                        .InverseLerp(Mathf.Sqrt(minAreaPixels * areaUnit),
+                        Mathf.Sqrt(surfaceAreaPixels * areaUnit),
+                        Mathf.Sqrt(smoothedAreaSize));
+                yPosFactor = Mathf.Lerp(surfaceYFraction, 0.0f, normalizedSize);
+                yPosition = Mathf.Lerp(maxY, surfaceY, normalizedSize) + distanceToCenter * yOffsetCompensation;
+            }
+            else
+            {
+                float normalizedSize =
+                    Mathf
+                        .InverseLerp(Mathf.Sqrt(surfaceAreaPixels * areaUnit),
+                        Mathf.Sqrt(maxAreaPixels * areaUnit),
+                        Mathf.Sqrt(smoothedAreaSize));
+                yPosFactor = Mathf.Lerp(1.0f, surfaceYFraction, normalizedSize);
+                yPosition = Mathf.Lerp(surfaceY, minY, normalizedSize) + distanceToCenter * yOffsetCompensation;
+            }
 
             // Map the smoothed position (0-1) to our world space bounds
-            Vector3 targetPosition = new Vector3(
-                Mathf.Lerp(screenBounds.x, -screenBounds.x, smoothedPosition.x)*(1.0f+xzOffsetCompensation*yPosFactor),
-                yPosition,
-                Mathf.Lerp(-screenBounds.y, screenBounds.y, smoothedPosition.y)*(1.0f+xzOffsetCompensation*yPosFactor)
-            );
+            Vector3 targetPosition =
+                new Vector3(Mathf
+                        .Lerp(screenBounds.x,
+                        -screenBounds.x,
+                        0.5f + (smoothedPosition.x - 0.5f) * (1.0f + xzOffsetCompensation * yPosFactor)),
+                    yPosition,
+                    Mathf
+                        .Lerp(-screenBounds.y,
+                        screenBounds.y,
+                        0.5f + (smoothedPosition.y - 0.5f) * (1.0f + xzOffsetCompensation * yPosFactor)));
 
             // Smoothly move the object towards the target position
-            targetObject.position = Vector3.Lerp(
-                targetObject.position,
-                targetPosition,
-                movementSpeed * Time.deltaTime
-            );
+            targetObject.position = Vector3.Lerp(targetObject.position, targetPosition, movementSpeed * Time.deltaTime);
         }
     }
 
@@ -375,19 +447,27 @@ public class ColorAreaTracker : MonoBehaviour
             }
 
             // Draw marker with size proportional to detected area
-            float markerSize = Mathf.Lerp(5, 20, Mathf.InverseLerp(minAreaPixels, maxAreaPixels, smoothedAreaSize));
-            GUI.DrawTexture(new Rect(markerX - markerSize / 2, markerY - markerSize / 2, markerSize, markerSize), Texture2D.whiteTexture);
+            float markerSize =
+                Mathf
+                    .Lerp(5,
+                    20,
+                    Mathf.InverseLerp(minAreaPixels * areaUnit, maxAreaPixels * areaUnit, smoothedAreaSize));
+            GUI
+                .DrawTexture(new Rect(markerX - markerSize / 2, markerY - markerSize / 2, markerSize, markerSize),
+                Texture2D.whiteTexture);
 
             // Display coordinates, detected color, and area size
             GUI.color = Color.white;
-            GUI.Label(new Rect(10, displayHeight + 20, 300, 20),
+            GUI
+                .Label(new Rect(10, displayHeight + 20, 300, 20),
                 $"{detectedColor} area position: ({smoothedPosition.x:F2}, {smoothedPosition.y:F2})");
-            GUI.Label(new Rect(10, displayHeight + 40, 300, 20),
+            GUI
+                .Label(new Rect(10, displayHeight + 40, 300, 20),
                 $"Area size: {smoothedAreaSize} pixels (Y position: {targetObject?.position.y:F2})");
 
             // Display debounce status
-            string debounceStatus = (Time.time - lastUpdateTime < positionUpdateInterval) ?
-                "Debouncing" : "Ready for update";
+            string debounceStatus =
+                (Time.time - lastUpdateTime < positionUpdateInterval) ? "Debouncing" : "Ready for update";
             GUI.Label(new Rect(10, displayHeight + 60, 300, 20), debounceStatus);
         }
     }
