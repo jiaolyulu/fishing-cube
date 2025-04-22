@@ -20,25 +20,28 @@ public class SoundPlay : MonoBehaviour
     private Vector3 velocity;
 
     [Header("Underwater Radio")]
+    // controls how under/in-water sound sources
+    // switch on & off, eq, effects.
     private AudioSource radioSource; // on main camera
     public float maxRadioDistance = 1.8f;
-    private AudioSource outwaterSource; // on pond object
+    private AudioSource seafoamSource; // on env sound object
+    private AudioSource heartbeatSource; // on env sound
 
     [Header("Other Settings")]
+    // configs underwater status
     private float lastCollisionTime = -999f;
     public float waterSurfaceSplashCooldown = 1f;
     private bool isUnderwater = false;
     private float underwaterDepth = 0f;
     private Transform waterSurfaceTransform;
+    private Transform heartbeatTransform;
 
     void Start()
     {
         SetUpAudioMixer();
-        SetUpRadioSound();
+        SetUpEnvSound();
 
         lastPosition = transform.position;
-
-        waterSurfaceTransform = GameObject.FindWithTag("WaterSurface").transform;
     }
 
     // @todo: Expose parameter, change audio mix dynamiclly
@@ -53,20 +56,23 @@ public class SoundPlay : MonoBehaviour
         if (groups.Length > 0)
         {
             audioSource.outputAudioMixerGroup = groups[0];
+            return;
         }
-        else
-        {
-            Debug.LogError("Audio mixer underwater is not found. Did you change the name?");
-        }
+        Debug.LogError("Audio mixer underwater is not found. Did you change the name?");
     }
 
-    void SetUpRadioSound()
+    void SetUpEnvSound()
     {
         radioSource = Camera.main.GetComponent<AudioSource>();
         if (radioSource == null) { Debug.LogError("Radio sound is not attached to main camera!"); }
 
-        outwaterSource = GameObject.Find("OutWaterSound").GetComponent<AudioSource>();
-        if (outwaterSource == null)  { Debug.LogError("Out water sound is not attached. Did you change the name?"); }
+        seafoamSource = GameObject.Find("seafoam").GetComponent<AudioSource>();
+        waterSurfaceTransform = GameObject.FindWithTag("WaterSurface").transform;
+        if (seafoamSource == null) { Debug.LogError("Seafoam sound is not found. Did you change the name?"); }
+
+        heartbeatSource = GameObject.Find("heartbeat").GetComponent<AudioSource>();
+        heartbeatTransform = GameObject.Find("heartbeat").transform;
+        if (heartbeatSource == null) { Debug.LogError("Heartbeat sound is not found. Did you change the name?"); }
     }
 
     void Update()
@@ -80,12 +86,13 @@ public class SoundPlay : MonoBehaviour
         underwaterDepth = Mathf.Clamp01(waterSurfaceTransform.position.y - transform.position.y);
 
         UpdateRadioSource();
-        UpdateOutwaterSource();
+        UpdateSeafoamSource();
+        UpdateHeartbeatSource();
     }
 
     void UpdateRadioSource()
     {
-        // 如果在水上，则不播放 radio
+        // only plays underwater
         if (!isUnderwater) 
         {
             // Debug.Log("not underwater, not playing radio.");
@@ -103,21 +110,39 @@ public class SoundPlay : MonoBehaviour
         // Debug.Log("underwater, radio distance: " + dist + ", max: " + maxRadioDistance + ", volume: " + radioSource.volume);
     }
 
-    void UpdateOutwaterSource()
+    void UpdateSeafoamSource()
     {
-        if (!outwaterSource.isPlaying) outwaterSource.Play();
+        // always playing, but adjust vol & pitch
+        if (!seafoamSource.isPlaying) seafoamSource.Play();
 
         // 根据水面的距离调整音量
         if (isUnderwater) 
         {
-            float dist = Vector3.Distance(transform.position, waterSurfaceTransform.position);
+            float dist = underwaterDepth;
             float distRatio = Mathf.Clamp01(1f - (dist / 1.2f));
-            outwaterSource.volume = 0.3f * distRatio;
-            outwaterSource.pitch = 0.3f * distRatio;
+            seafoamSource.volume = 0.3f * distRatio;
+            seafoamSource.pitch = 0.3f * distRatio;
         } else {
-            outwaterSource.volume = 0.3f;
-            outwaterSource.pitch = 1f;
+            seafoamSource.volume = 0.3f;
+            seafoamSource.pitch = 0.8f;
         }
+    }
+
+    void UpdateHeartbeatSource()
+    {
+        if (!isUnderwater)
+        {
+            heartbeatSource.volume = 0f;
+            heartbeatSource.Stop();
+            return;
+        }
+        if (!heartbeatSource.isPlaying) heartbeatSource.Play();
+
+        // ???
+        // 深度始终保持一致
+        Vector3 pos = heartbeatTransform.position;
+        pos.z = transform.position.z;
+        heartbeatTransform.position = pos;
     }
 
     void OnCollisionEnter(Collision collision)
