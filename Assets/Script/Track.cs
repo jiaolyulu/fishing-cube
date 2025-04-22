@@ -27,6 +27,9 @@ public class ColorAreaTracker : MonoBehaviour
     [Range(0, 255)]
     public int colorDominanceThreshold = 50; // How much stronger than other channels
 
+    [Range(0, 255)]
+    public int blackThreshold = 30; // How dark pixels need to be to be considered black
+
     public enum TrackingColor
     {
         Red,
@@ -189,22 +192,30 @@ public class ColorAreaTracker : MonoBehaviour
 
     bool IsColoredPixel(Color32 pixel, TrackingColor color)
     {
+        bool isDarkRed = pixel.g < blackThreshold && pixel.b < blackThreshold && pixel.r > pixel.g && pixel.r > pixel.b;
+        bool isDarkGreen =
+            pixel.r < blackThreshold && pixel.b < blackThreshold && pixel.g > pixel.r && pixel.g > pixel.b;
+        bool isDarkBlue =
+            pixel.r < blackThreshold && pixel.g < blackThreshold && pixel.b > pixel.r && pixel.b > pixel.g;
         switch (color)
         {
             case TrackingColor.Red:
-                return (
+                return isDarkRed ||
+                (
                 pixel.r > colorThreshold &&
                 pixel.r > pixel.g + colorDominanceThreshold &&
                 pixel.r > pixel.b + colorDominanceThreshold
                 );
             case TrackingColor.Green:
-                return (
+                return isDarkGreen ||
+                (
                 pixel.g > colorThreshold &&
                 pixel.g > pixel.r + colorDominanceThreshold &&
                 pixel.g > pixel.b + colorDominanceThreshold
                 );
             case TrackingColor.Blue:
-                return (
+                return isDarkBlue ||
+                (
                 pixel.b > colorThreshold &&
                 pixel.b > pixel.r + colorDominanceThreshold &&
                 pixel.b > pixel.g + colorDominanceThreshold
@@ -396,7 +407,7 @@ public class ColorAreaTracker : MonoBehaviour
                         Mathf.Sqrt(maxAreaPixels * areaUnit),
                         Mathf.Sqrt(smoothedAreaSize));
                 yPosFactor = Mathf.Lerp(1.0f, surfaceYFraction, normalizedSize);
-                yPosition = Mathf.Lerp(surfaceY, minY, normalizedSize) + distanceToCenter * yOffsetCompensation;
+                yPosition = Mathf.Lerp(surfaceY, minY, normalizedSize) - distanceToCenter * yOffsetCompensation;
             }
 
             // Map the smoothed position (0-1) to our world space bounds

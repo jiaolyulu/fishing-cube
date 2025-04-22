@@ -548,7 +548,7 @@ Transform:
   m_GameObject: {fileID: 522692733}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.821, z: 0}
+  m_LocalPosition: {x: 0, y: 1.8, z: 0}
   m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1614,7 +1614,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2069792160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1633,24 +1633,27 @@ MonoBehaviour:
   requestedHeight: 480
   requestedFPS: 30
   hasTarget: 1
-  minAreaSize: 1600
+  minAreaSize: 100
   clusterSize: 3
-  colorThreshold: 80
-  colorDominanceThreshold: 39
+  colorThreshold: 53
+  colorDominanceThreshold: 52
   trackingColor: 0
   targetObject: {fileID: 1831926131}
   movementSpeed: 4
   screenBounds: {x: 1, y: 1}
   minY: 0
+  surfaceY: 1.8
   maxY: 3
-  minAreaPixels: 36
-  maxAreaPixels: 10000
+  minAreaPixels: 1
+  surfaceAreaPixels: 5
+  maxAreaPixels: 70
+  areaUnit: 600
   positionUpdateInterval: 0.05
   minMovementThreshold: 0.01
   positionSmoothing: 0.5
   areaSizeSmoothing: 0.5
-  yOffsetCompensation: 0.1
-  xzOffsetCompensation: 0.4
+  yOffsetCompensation: 0
+  xzOffsetCompensation: 0
   showDebugInfo: 1
 --- !u!4 &2069792161
 Transform:
