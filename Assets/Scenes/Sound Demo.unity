@@ -2007,8 +2007,8 @@ MonoBehaviour:
   repulsionDistance: 1
   repulsionStrength: 1
   tangentStrength: 0.5
-  attractionDistance: 2
-  attachDistance: 0.8
+  attractionDistance: 0.8
+  attachDistance: 0.2
   attachDelay: 1
   releaseDelay: 3
   respawnDelay: 3
