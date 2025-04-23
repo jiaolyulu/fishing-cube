@@ -2007,7 +2007,7 @@ MonoBehaviour:
   repulsionDistance: 1
   repulsionStrength: 1
   tangentStrength: 0.5
-  attractionDistance: 0.8
+  attractionDistance: 1
   attachDistance: 0.2
   attachDelay: 1
   releaseDelay: 3

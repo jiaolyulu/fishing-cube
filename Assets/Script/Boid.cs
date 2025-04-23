@@ -102,6 +102,8 @@ public class Boid : MonoBehaviour
 
     public void UpdatePosition(Vector3 trackerPos)
     {
+        if (isReleased) return;
+
         // when not attracted by tracker, boid move around main cam
         // when tracker is close to the boid, move around tracker
         // when tracker is close to the boid for 2 secodns, attach to tracker
@@ -116,7 +118,7 @@ public class Boid : MonoBehaviour
 
         if (isAttached)
         {
-            AttachToTracker();
+            AttachToTracker();//@bug: update pos only, see if need to release
             return;
         }
 
@@ -180,6 +182,8 @@ public class Boid : MonoBehaviour
 
     void AttachToTracker()
     {
+        if (isReleased) return;
+
         if (attachedSince == float.PositiveInfinity)
         {
             attachedSince = Time.time;
@@ -191,7 +195,8 @@ public class Boid : MonoBehaviour
 
         if (!audioSource.isPlaying) audioSource.Play();
 
-        Debug.Log("Boid release? " + attachedSince + ", after releaseDelay: " + releaseDelay + ", or not in water: " + tracker.isUnderwater);
+        Debug.Log("Boid release? " + attachedSince + ", after attachDelay: " + attachDelay + ", or not in water: " + tracker.isUnderwater);
+
         // if stay underwater > delay, release
         if (tracker.isUnderwater)
         {
