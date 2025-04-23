@@ -3,50 +3,61 @@ using UnityEngine.Audio;
 
 public class SoundPlay : MonoBehaviour
 {
-    [Header("Sound Clips")]
+    [Header("Splash Sound")]
     public AudioClip splashIn;
     public AudioClip splashInSlow;
     public AudioClip splashOut;
     public AudioClip splashOutSlow;
-    public AudioClip waterFlow;
     public AudioClip baitSinking;
-    public AudioClip poleClicking; // @todo: fade out when sinking
+
+    [Header("Horizontal Move")]
+    public AudioClip[] hzUnderwater;
+
+    public AudioClip hzWaterSurfaceSlow;
+    public AudioClip hzWaterSurfaceFast;
 
     [Header("EQ Settings")]
     public AudioMixer underwaterEQ;
+    protected AudioSource audioSource; // play trigger events sounds, e.g. enter water surface
 
-    protected AudioSource audioSource;
-    private Vector3 lastPosition;
-    private Vector3 velocity;
-
-    [Header("Underwater Radio")]
-    // controls how under/in-water sound sources
+    [Header("Env Settings")]
+    // controls under/in-water sound sources
     // switch on & off, eq, effects.
     private AudioSource radioSource; // on main camera
-    public float maxRadioDistance = 1.8f;
     private AudioSource seafoamSource; // on env sound object
     private AudioSource heartbeatSource; // on env sound
 
-    [Header("Other Settings")]
-    // configs underwater status
-    private float lastCollisionTime = -999f;
+    public float maxRadioDistance = 1.8f;
     public float waterSurfaceSplashCooldown = 1f;
-    private bool isUnderwater = false;
-    private float underwaterDepth = 0f;
+    public float waterSurfaceSplashMaxSpeed = 1.5f;
+
     private Transform waterSurfaceTransform;
     private Transform heartbeatTransform;
+    private Transform morseTransform; // moving morse code source
+
+    [Header("Tracker Settings")]
+    // store underwater status
+    private float lastCollisionTime = -999f;
+    public bool isUnderwater { get; private set; }
+    public float underwaterDepth { get; private set; }
+
+    private Vector3 lastPosition;
+    private Vector3 velocity;
 
     void Start()
     {
         SetUpAudioMixer();
         SetUpEnvSound();
+        SetupMorseCodeSound();
 
         lastPosition = transform.position;
+
+        // @todo: if underwater, play bubble sound when xy movement > 0.2f; play soft splash when xy movement > 0.5f;
+        // @todo: if at surface, play splash soound when xy movement > 0.3f, and < 0.5f;
     }
 
-    // @todo: Expose parameter, change audio mix dynamiclly
-    //
-    // @param: pitch (<depth), fade (<depth), frequency (<depth)
+    // @todo: expose parameter, change audio mix dynamically
+    // @param: pitch, fade, frequency (all based on depth)
     //
     void SetUpAudioMixer()
     {
@@ -66,13 +77,25 @@ public class SoundPlay : MonoBehaviour
         radioSource = Camera.main.GetComponent<AudioSource>();
         if (radioSource == null) { Debug.LogError("Radio sound is not attached to main camera!"); }
 
-        seafoamSource = GameObject.Find("seafoam").GetComponent<AudioSource>();
         waterSurfaceTransform = GameObject.FindWithTag("WaterSurface").transform;
+        if (waterSurfaceTransform == null) { Debug.LogError("waterSurfaceTransform is not found. Did you change the name?"); }
+
+        seafoamSource = GameObject.Find("seafoam").GetComponent<AudioSource>();
         if (seafoamSource == null) { Debug.LogError("Seafoam sound is not found. Did you change the name?"); }
 
-        heartbeatSource = GameObject.Find("heartbeat").GetComponent<AudioSource>();
         heartbeatTransform = GameObject.Find("heartbeat").transform;
+        if (heartbeatTransform == null) { Debug.LogError("Heartbeat transform is not found. Did you change the name?"); }
+
+        heartbeatSource = heartbeatTransform.GetComponent<AudioSource>();
         if (heartbeatSource == null) { Debug.LogError("Heartbeat sound is not found. Did you change the name?"); }
+    }
+
+    void SetupMorseCodeSound()
+    {
+        morseTransform = GameObject.Find("morsecode").transform;
+        if (morseTransform == null) { Debug.LogError("Morse code transform is not found. Did you change the name?"); }
+
+        morseTransform.GetComponent<Boid>().InitializePosition();
     }
 
     void Update()
@@ -88,6 +111,7 @@ public class SoundPlay : MonoBehaviour
         UpdateRadioSource();
         UpdateSeafoamSource();
         UpdateHeartbeatSource();
+        UpdateMorseCodeSource();
     }
 
     void UpdateRadioSource()
@@ -145,15 +169,17 @@ public class SoundPlay : MonoBehaviour
         heartbeatTransform.position = pos;
     }
 
+    void UpdateMorseCodeSource()
+    {
+        morseTransform.GetComponent<Boid>().UpdatePosition(transform.position);
+    }
+
     void OnCollisionEnter(Collision collision)
     {
         AudioClip clipToPlay = null;
 
-        Debug.Log("hit rigid object.");
+        // Debug.Log("hit rigid object.");
 
-        // if (collision.gameObject.CompareTag("WaterSurface"))
-        // {
-        // }
         if (clipToPlay != null)
         {
             audioSource.PlayOneShot (clipToPlay);
@@ -164,15 +190,14 @@ public class SoundPlay : MonoBehaviour
     {
         AudioClip clipToPlay = null;
 
-        Debug.Log("hit invisible object.");
+        // Debug.Log("hit invisible object.");
         float currentTime = Time.time;
         bool collisionTooSoon =
             (currentTime - lastCollisionTime) < waterSurfaceSplashCooldown;
 
         if (collisionTooSoon)
         {
-            Debug.Log("Collision flagged: happened too soon after the last one.");
-            clipToPlay = waterFlow;
+            // Debug.Log("Collision flagged: happened too soon after the last one.");
         }
         else
         {
@@ -182,7 +207,7 @@ public class SoundPlay : MonoBehaviour
                 // 如果物體垂直速度為負，表示是從上往下進水
                 if (velocity.y < 0)
                 {
-                    if (Mathf.Abs(velocity.y) < 1.5)
+                    if (Mathf.Abs(velocity.y) < waterSurfaceSplashMaxSpeed)
                     {
                         clipToPlay = splashInSlow;
                     }
@@ -190,11 +215,12 @@ public class SoundPlay : MonoBehaviour
                     {
                         clipToPlay = splashIn;
                     }
-                    Debug.Log("Entering water: playing splashIn");
-                } // 如果物體垂直速度為正，表示是從下往上出水
+                    // Debug.Log("Entering water: playing splashIn");
+                }
+                // 如果物體垂直速度為正，表示是從下往上出水
                 else if (velocity.y > 0)
                 {
-                    if (Mathf.Abs(velocity.y) < 1.5)
+                    if (Mathf.Abs(velocity.y) < waterSurfaceSplashMaxSpeed)
                     {
                         clipToPlay = splashOutSlow;
                     }
@@ -202,7 +228,7 @@ public class SoundPlay : MonoBehaviour
                     {
                         clipToPlay = splashOut;
                     }
-                    Debug.Log("Exiting water: playing splashOut");
+                    // Debug.Log("Exiting water: playing splashOut");
                 }
             }
         }
@@ -219,7 +245,7 @@ public class SoundPlay : MonoBehaviour
     {
         AudioClip clipToPlay = null;
 
-        Debug.Log("exit invisible object.");
+        // Debug.Log("exit invisible object.");
 
         if (collision.gameObject.CompareTag("WaterSurface"))
         {
@@ -228,7 +254,7 @@ public class SoundPlay : MonoBehaviour
             if (velocity.y < 0)
             {
                 clipToPlay = baitSinking;
-                Debug.Log("Sinking in water: playing sinking sound");
+                // Debug.Log("Sinking in water: playing sinking sound");
             } // 如果物體垂直速度為正，表示是從下往上出水
             else if (velocity.y > 0)
             {
