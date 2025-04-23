@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 220581176}
   m_Layer: 0
-  m_Name: Env Sounds
+  m_Name: Env Objects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -304,8 +304,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 0.1
+  MaxDistance: 5
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -633,7 +633,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 832575517}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
@@ -2010,7 +2010,7 @@ MonoBehaviour:
   attractionDistance: 1
   attachDistance: 0.2
   attachDelay: 1
-  releaseDelay: 3
+  releaseDelay: 10
   respawnDelay: 3
 --- !u!82 &2120347792
 AudioSource:

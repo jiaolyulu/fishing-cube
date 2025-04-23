@@ -30,6 +30,7 @@ public class SoundPlay : MonoBehaviour
     public float maxRadioDistance = 1.8f;
     public float waterSurfaceSplashCooldown = 1f;
     public float waterSurfaceSplashMaxSpeed = 1.5f;
+    public float boidRespawnAfter = 10f; // reactivate morse code object after seconds
 
     private Transform waterSurfaceTransform;
     private Transform heartbeatTransform;
@@ -43,6 +44,7 @@ public class SoundPlay : MonoBehaviour
 
     private Vector3 lastPosition;
     private Vector3 velocity;
+    private float boidReleaseSince = float.PositiveInfinity;
 
     void Start()
     {
@@ -128,7 +130,7 @@ public class SoundPlay : MonoBehaviour
 
         // 根据距离调整 radio 的音量
         float dist = Vector3.Distance(transform.position, Camera.main.transform.position);
-        float distRatio = Mathf.Clamp01(1f - (dist / maxRadioDistance)) * 0.6f;
+        float distRatio = Mathf.Clamp01(1f - (dist / maxRadioDistance)) * 0.4f;
         radioSource.volume = distRatio;
         radioSource.pitch = 2f - Mathf.Clamp01(underwaterDepth / 2f);
         // Debug.Log("underwater, radio distance: " + dist + ", max: " + maxRadioDistance + ", volume: " + radioSource.volume);
@@ -171,7 +173,26 @@ public class SoundPlay : MonoBehaviour
 
     void UpdateMorseCodeSource()
     {
-        morseTransform.GetComponent<Boid>().UpdatePosition(transform.position);
+        // if boid is inactive, record its time for later reactivation
+        if (!morseTransform.gameObject.activeSelf) 
+        {
+            if (boidReleaseSince == float.PositiveInfinity)
+            {
+                boidReleaseSince = Time.time;
+            }
+            else if (Time.time - boidReleaseSince >= boidRespawnAfter) 
+            {
+                Debug.Log("Player: Reactivate boid object!");
+
+                boidReleaseSince = float.PositiveInfinity;
+                morseTransform.gameObject.SetActive(true);
+                morseTransform.GetComponent<Boid>().InitializePosition();
+            }
+            return;
+        }
+        Debug.Log("Player: Move boid object.");
+        // otherwise, move it
+        morseTransform.GetComponent<Boid>().UpdatePosition();
     }
 
     void OnCollisionEnter(Collision collision)

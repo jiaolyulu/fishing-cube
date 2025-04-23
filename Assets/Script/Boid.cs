@@ -21,17 +21,13 @@ public class Boid : MonoBehaviour
     private AudioSource audioSource;
 
     [Header("Boid Settings")]
-    // @todo use a blue triangle mesh to denote its direction for visual debug
-    //
     public float maxSpeed = 0.3f; // move slowly please!
     public float maxForce = 1f;
-    private Vector3 velocity = Vector3.zero;
-
     // attraction / repulsion
     public float attractionStrength = 4f;
     public float repulsionDistance = 0.2f;
     public float repulsionStrength = 1f;
-    public float tangentStrength = 1f;
+    public float tangentStrength = 1f; // move counter-clockwise
 
     [Header("Attraction Settings")]
     public float attractionDistance = 2f; // attract to tracker in the distance
@@ -40,13 +36,13 @@ public class Boid : MonoBehaviour
     public float releaseDelay = 3f; // release after 3s if attached longer than it underwater
     public float respawnDelay = 3f; // respawn after 3s after release
 
-    // 内部计时器：累计与追踪器保持靠近的时间
+    // 内部计时器：累计与 tracker 保持靠近的时间
     private float nearbySince = float.PositiveInfinity;
     private float attachedSince = float.PositiveInfinity;
-    private bool isAttached => !isReleased && Time.time - nearbySince >= attachDelay || Vector3.Distance(transform.position, lastTrackerPos) < attachDistance;
+    private bool isAttached = false;
     private bool isReleased = false;
 
-    private Vector3 lastTrackerPos;
+    private Vector3 velocity = Vector3.zero;
     private Vector3 camPos;
     private Vector3 waterSurfacePos;
     private SoundPlay tracker;
@@ -98,16 +94,27 @@ public class Boid : MonoBehaviour
         audioSource.clip = morseCodeSound;
 
         audioSource.Stop();
+
+        // reset all internal status
+        isReleased = false;
+        isAttached = false;
+        nearbySince = float.PositiveInfinity;
+        attachedSince = float.PositiveInfinity;
     }
 
-    public void UpdatePosition(Vector3 trackerPos)
+    public void UpdatePosition()
     {
         if (isReleased) return;
+        if (isAttached)
+        {
+            transform.position = tracker.transform.position;
+            TryRelease();
+            return;
+        }
 
         // when not attracted by tracker, boid move around main cam
         // when tracker is close to the boid, move around tracker
         // when tracker is close to the boid for 2 secodns, attach to tracker
-        lastTrackerPos = trackerPos;
 
         if (tracker.isUnderwater)
         {
@@ -116,22 +123,21 @@ public class Boid : MonoBehaviour
             if (!isAttached) audioSource.Stop();
         }
 
-        if (isAttached)
-        {
-            AttachToTracker();//@bug: update pos only, see if need to release
-            return;
-        }
-
-        float distanceToTracker = Vector3.Distance(transform.position, trackerPos);
-        if (distanceToTracker <= attractionDistance && tracker.isUnderwater)
+        float distTracker = GetTrackerDistance();        
+        if (distTracker <= attractionDistance && tracker.isUnderwater)
         {
             // 当 tracker 足够近时，围绕 tracker 运动, tracker 需要在水下
+            Vector3 trackerPos = tracker.transform.position;
             UpdateBoidPosition(trackerPos);
 
             // attach to tracker when close enough for long
-            if (nearbySince == float.PositiveInfinity) nearbySince = Time.time;
+            if (nearbySince == float.PositiveInfinity)
+            {
+                Debug.Log("Boid detects player nearby.");
+                nearbySince = Time.time;
+            }
 
-            if (isAttached)
+            if (ShouldAttach())
             {
                 Debug.Log("Boid attach to tracker..now: " + Time.time);
                 AttachToTracker();
@@ -139,9 +145,11 @@ public class Boid : MonoBehaviour
         }
         else
         {
-            Debug.Log("Boid attract by main camera.");
-            // tracker 太远，则围绕主摄像机运动, reset timer
+            // Debug.Log("Boid attract by main camera.");
+
+            // if far from tracker, move around main camera, reset timer
             UpdateBoidPosition(camPos);
+
             nearbySince = float.PositiveInfinity;
             attachedSince = float.PositiveInfinity;
         }
@@ -154,7 +162,6 @@ public class Boid : MonoBehaviour
 
         // draw attraction center!
         Debug.DrawLine(transform.position, center, Color.yellow);
-        // Debug.Draw
 
         Vector3 toCenter = center - transform.position;
         Vector3 desired = toCenter.normalized * maxSpeed * attractionStrength;
@@ -180,9 +187,36 @@ public class Boid : MonoBehaviour
         }
     }
 
+    void TryRelease()
+    {
+        // if not in water, release
+        if (!tracker.isUnderwater)
+        {
+            ReleaseFromTracker();
+            return;
+        }
+        // if stay underwater > delay, release
+        if (tracker.isUnderwater && Time.time - attachedSince >= releaseDelay)
+        {
+            ReleaseFromTracker();
+            return;
+        }
+    }
+
+    bool ShouldAttach()
+    {
+        if (isReleased || isAttached)
+        {
+            return false;
+        }
+        return Time.time - nearbySince >= attachDelay || GetTrackerDistance() < attachDistance;
+    }
+
     void AttachToTracker()
     {
-        if (isReleased) return;
+        Debug.Log("Boid is attached: " + isAttached + ", is released: " + isReleased);
+
+        if (isReleased || isAttached) return;
 
         if (attachedSince == float.PositiveInfinity)
         {
@@ -192,31 +226,22 @@ public class Boid : MonoBehaviour
         // attach to tracker
         transform.position = tracker.transform.position;
         audioSource.clip = longBeepSound;
+        isAttached = true;
+
+        // Debug.Log("Boid is attached: " + isAttached + ", is released: " + isReleased);
+        // Debug.Break();
 
         if (!audioSource.isPlaying) audioSource.Play();
-
-        Debug.Log("Boid release? " + attachedSince + ", after attachDelay: " + attachDelay + ", or not in water: " + tracker.isUnderwater);
-
-        // if stay underwater > delay, release
-        if (tracker.isUnderwater)
-        {
-            if (Time.time - attachedSince >= releaseDelay) ReleaseFromTracker();
-        }
-        // if not in water, release
-        else
-        {
-            ReleaseFromTracker();
-        }
     }
 
     void ReleaseFromTracker()
     {
+        isAttached = false;
+
         if (isReleased) return;
 
         isReleased = true;
 
-        // @bug: permanent releasing!!...
-        //
         Debug.Log("Boid release from tracker");
 
         attachedSince = float.PositiveInfinity;
@@ -230,9 +255,11 @@ public class Boid : MonoBehaviour
         {
             audioSource.PlayOneShot(aboveWaterSound);
         }
-        // @debug
-        // Invoke(nameof(InitializePosition), respawnDelay);
-
         gameObject.SetActive(false);
+    }
+
+    float GetTrackerDistance()
+    {
+        return Vector3.Distance(transform.position, tracker.transform.position);
     }
 }
