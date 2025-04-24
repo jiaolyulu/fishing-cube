@@ -104,6 +104,11 @@ public class Boid : MonoBehaviour
 
     public void UpdatePosition()
     {
+        // 1. release mode
+        // 2. attach mode
+        // 3. tracker mode (boid)
+        // 4. main camera mode (boid)
+        // 
         if (isReleased) return;
         if (isAttached)
         {
@@ -183,10 +188,8 @@ public class Boid : MonoBehaviour
         velocity = Vector3.ClampMagnitude(velocity + steer * Time.deltaTime, maxSpeed);
         transform.position += velocity * Time.deltaTime;
 
-        if (velocity.sqrMagnitude > 0.001f)
-        {
-            transform.rotation = Quaternion.LookRotation(velocity);
-        }
+        // don't go too low / above water surface in boid mode
+        transform.position.y = Mathf.Clamp(camPos.y+spawnVerticalMargin, waterSurfacePos.y-spawnVerticalMargin);
     }
 
     void TryRelease()
