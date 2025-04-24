@@ -13,7 +13,7 @@ public class Boid : MonoBehaviour
     [Header("Sound Settings")]
     public AudioClip morseCodeSound;
     public AudioClip longBeepSound;
-    public AudioClip nosieSound;
+    public AudioClip noiseSound;
     public AudioClip aboveWaterSound;
 
     [Header("EQ Settings")]
@@ -243,25 +243,24 @@ public class Boid : MonoBehaviour
 
     void ReleaseFromTracker()
     {
-        isAttached = false;
-
         if (isReleased) return;
-
-        isReleased = true;
 
         Debug.Log("Boid release from tracker");
 
-        attachedSince = float.PositiveInfinity;
-        audioSource.Stop();
-
         if (tracker.isUnderwater)
         {
-            audioSource.PlayOneShot(nosieSound);
+            tracker.PlayOneShot(noiseSound);
         }
         else 
         {
-            audioSource.PlayOneShot(aboveWaterSound);
+            tracker.PlayOneShot(aboveWaterSound);
         }
+
+        attachedSince = float.PositiveInfinity;
+        isAttached = false;
+        isReleased = true;
+
+        audioSource.Stop();
         gameObject.SetActive(false);
     }
 

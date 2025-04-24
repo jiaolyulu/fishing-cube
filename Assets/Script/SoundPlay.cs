@@ -316,7 +316,7 @@ public class SoundPlay : MonoBehaviour
             clipToPlay = hzUnderwater[Random.Range(0, hzUnderwater.Length)];
         }
         // 在水面
-        else
+        else if (Mathf.Abs(transform.position.y - waterSurfaceTransform.position.y) < 0.2f)
         {
             clipToPlay = speed > hzMoveSpeedCutoff ? hzWaterSurfaceFast : hzWaterSurfaceSlow;
         }
@@ -327,6 +327,15 @@ public class SoundPlay : MonoBehaviour
         {
             Debug.Log("play clip: " + clipToPlay);
             audioSource.PlayOneShot (clipToPlay);
+        }
+    }
+
+    public void PlayOneShot(AudioClip externalClip)
+    {
+        if (externalClip != null)
+        {
+            Debug.Log("play external clip: " + externalClip);
+            audioSource.PlayOneShot(externalClip);
         }
     }
 
