@@ -3,18 +3,23 @@ using UnityEngine.Audio;
 
 public class SoundPlay : MonoBehaviour
 {
-    [Header("Splash Sound")]
+    [Header("Vertical Move")]
     public AudioClip splashIn;
     public AudioClip splashInSlow;
     public AudioClip splashOut;
     public AudioClip splashOutSlow;
     public AudioClip baitSinking;
 
+    public float surfaceSplashCooldown = 1f; // enter & exit water sound
+    public float surfaceSplashSpeedCutoff = 1.5f;
+
     [Header("Horizontal Move")]
     public AudioClip[] hzUnderwater;
-
     public AudioClip hzWaterSurfaceSlow;
     public AudioClip hzWaterSurfaceFast;
+
+    public float hzMoveSpeedCooldown = 2f; // in-water movement sound
+    public float hzMoveSpeedCutoff = 1.0f;
 
     [Header("EQ Settings")]
     public AudioMixer underwaterEQ;
@@ -28,17 +33,17 @@ public class SoundPlay : MonoBehaviour
     private AudioSource heartbeatSource; // on env sound
 
     public float maxRadioDistance = 1.8f;
-    public float waterSurfaceSplashCooldown = 1f;
-    public float waterSurfaceSplashMaxSpeed = 1.5f;
-    public float boidRespawnAfter = 10f; // reactivate morse code object after seconds
+    public float boidRespawnCooldown = 10f; // reactivate morse code object after seconds
 
     private Transform waterSurfaceTransform;
     private Transform heartbeatTransform;
     private Transform morseTransform; // moving morse code source
 
+    private float lastSplashTime = -999f; // enter & exit water sound
+    private float lastHorizontalSplashTime = -999f; // in-water movement sound
+
     [Header("Tracker Settings")]
     // store underwater status
-    private float lastCollisionTime = -999f;
     public bool isUnderwater { get; private set; }
     public float underwaterDepth { get; private set; }
 
@@ -114,6 +119,7 @@ public class SoundPlay : MonoBehaviour
         UpdateSeafoamSource();
         UpdateHeartbeatSource();
         UpdateMorseCodeSource();
+        UpdateHorizontalMove();
     }
 
     void UpdateRadioSource()
@@ -173,14 +179,14 @@ public class SoundPlay : MonoBehaviour
 
     void UpdateMorseCodeSource()
     {
-        // if boid is inactive, record its time for later reactivation
+        // if boid is inactive, store its time for later reactivation
         if (!morseTransform.gameObject.activeSelf) 
         {
             if (boidReleaseSince == float.PositiveInfinity)
             {
                 boidReleaseSince = Time.time;
             }
-            else if (Time.time - boidReleaseSince >= boidRespawnAfter) 
+            else if (Time.time - boidReleaseSince >= boidRespawnCooldown) 
             {
                 Debug.Log("Player: Reactivate boid object!");
 
@@ -194,73 +200,77 @@ public class SoundPlay : MonoBehaviour
         morseTransform.GetComponent<Boid>().UpdatePosition();
     }
 
+    // 碰击墙壁
     void OnCollisionEnter(Collision collision)
     {
         AudioClip clipToPlay = null;
 
         // Debug.Log("hit rigid object.");
 
+        // @todo:
+        //  play metal sound
+
         if (clipToPlay != null)
         {
             audioSource.PlayOneShot (clipToPlay);
         }
     }
 
+    // 进入水面
     void OnTriggerEnter(Collider collision)
     {
         AudioClip clipToPlay = null;
 
         // Debug.Log("hit invisible object.");
-        float currentTime = Time.time;
-        bool collisionTooSoon =
-            (currentTime - lastCollisionTime) < waterSurfaceSplashCooldown;
+        float now = Time.time;
 
-        if (collisionTooSoon)
+        if (collision.gameObject.CompareTag("WaterSurface"))
         {
-            // Debug.Log("Collision flagged: happened too soon after the last one.");
-        }
-        else
-        {
-            if (collision.gameObject.CompareTag("WaterSurface"))
+            // Debug.Log("hit water with vel: " + velocity.y);
+
+            // last splash too fast, do nothing
+            if (now - lastSplashTime < surfaceSplashCooldown)
             {
-                // Debug.Log("hit water with vel: " + velocity.y);
-                // 如果物體垂直速度為負，表示是從上往下進水
-                if (velocity.y < 0)
+                return;
+            }
+            // 如果物體垂直速度為負，表示是從上往下進水
+            if (velocity.y < 0)
+            {
+                if (Mathf.Abs(velocity.y) < surfaceSplashSpeedCutoff)
                 {
-                    if (Mathf.Abs(velocity.y) < waterSurfaceSplashMaxSpeed)
-                    {
-                        clipToPlay = splashInSlow;
-                    }
-                    else
-                    {
-                        clipToPlay = splashIn;
-                    }
-                    // Debug.Log("Entering water: playing splashIn");
+                    clipToPlay = splashInSlow;
                 }
-                // 如果物體垂直速度為正，表示是從下往上出水
-                else if (velocity.y > 0)
+                else
                 {
-                    if (Mathf.Abs(velocity.y) < waterSurfaceSplashMaxSpeed)
-                    {
-                        clipToPlay = splashOutSlow;
-                    }
-                    else
-                    {
-                        clipToPlay = splashOut;
-                    }
-                    // Debug.Log("Exiting water: playing splashOut");
+                    clipToPlay = splashIn;
                 }
+                // Debug.Log("Entering water: playing splashIn");
+            }
+            // 如果物體垂直速度為正，表示是從下往上出水
+            else if (velocity.y > 0)
+            {
+                if (Mathf.Abs(velocity.y) < surfaceSplashSpeedCutoff)
+                {
+                    clipToPlay = splashOutSlow;
+                }
+                else
+                {
+                    clipToPlay = splashOut;
+                }
+                // Debug.Log("Exiting water: playing splashOut");
             }
         }
+
         if (clipToPlay != null)
         {
             Debug.Log("play clip: " + clipToPlay);
             audioSource.PlayOneShot (clipToPlay);
         }
 
-        lastCollisionTime = currentTime;
+        lastSplashTime = now;
     }
 
+    // 离开水面
     void OnTriggerExit(Collider collision)
     {
         AudioClip clipToPlay = null;
@@ -270,16 +280,48 @@ public class SoundPlay : MonoBehaviour
         if (collision.gameObject.CompareTag("WaterSurface"))
         {
             // Debug.Log("hit water with vel: " + velocity.y);
-            // 如果物體垂直速度為負，表示是從上往下
+
+            // 向下离开水面
             if (velocity.y < 0)
             {
                 clipToPlay = baitSinking;
                 // Debug.Log("Sinking in water: playing sinking sound");
-            } // 如果物體垂直速度為正，表示是從下往上出水
-            else if (velocity.y > 0)
-            {
-            }
+            } 
         }
+
+        if (clipToPlay != null)
+        {
+            Debug.Log("play clip: " + clipToPlay);
+            audioSource.PlayOneShot (clipToPlay);
+        }
+    }
+
+    // 待在水面上/水中时，横向移动会造成水体声音
+    void UpdateHorizontalMove()
+    {
+        AudioClip clipToPlay = null;
+
+        // last in-water horizontal splash too fast, do nothing
+        if (Time.time - lastHorizontalSplashTime < hzMoveSpeedCooldown) return;
+
+        // 横向移动速度
+        float speed = velocity.magnitude;
+
+        // 几乎没有移动时，忽略
+        if (speed < hzMoveSpeedCutoff * 0.5f || speed < 0.1f) return;
+
+        // 在水下
+        if (isUnderwater)
+        {
+            clipToPlay = hzUnderwater[Random.Range(0, hzUnderwater.Length)];
+        }
+        // 在水面
+        else
+        {
+            clipToPlay = speed > hzMoveSpeedCutoff ? hzWaterSurfaceFast : hzWaterSurfaceSlow;
+        }
+
+        lastHorizontalSplashTime = Time.time;
 
         if (clipToPlay != null)
         {

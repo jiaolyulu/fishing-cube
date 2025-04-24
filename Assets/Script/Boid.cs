@@ -186,10 +186,12 @@ public class Boid : MonoBehaviour
 
         steer = Vector3.ClampMagnitude(steer, maxForce) + tangent;
         velocity = Vector3.ClampMagnitude(velocity + steer * Time.deltaTime, maxSpeed);
-        transform.position += velocity * Time.deltaTime;
 
+        // add velocity to current pos, but
         // don't go too low / above water surface in boid mode
-        transform.position.y = Mathf.Clamp(camPos.y+spawnVerticalMargin, waterSurfacePos.y-spawnVerticalMargin);
+        Vector3 nextPos = transform.position + velocity * Time.deltaTime;
+        nextPos.y = Mathf.Clamp(nextPos.y, camPos.y+spawnVerticalMargin, waterSurfacePos.y-spawnVerticalMargin);
+        transform.position = nextPos;
     }
 
     void TryRelease()
