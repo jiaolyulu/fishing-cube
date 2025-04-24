@@ -58,9 +58,6 @@ public class SoundPlay : MonoBehaviour
         SetupMorseCodeSound();
 
         lastPosition = transform.position;
-
-        // @todo: if underwater, play bubble sound when xy movement > 0.2f; play soft splash when xy movement > 0.5f;
-        // @todo: if at surface, play splash soound when xy movement > 0.3f, and < 0.5f;
     }
 
     // @todo: expose parameter, change audio mix dynamically
@@ -338,6 +335,4 @@ public class SoundPlay : MonoBehaviour
             audioSource.PlayOneShot(externalClip);
         }
     }
-
-    // todo: ontriggerstay, if move, play splash soft
 }

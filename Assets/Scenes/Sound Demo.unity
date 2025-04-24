@@ -1748,16 +1748,19 @@ MonoBehaviour:
   splashOut: {fileID: 8300000, guid: 2106ef02586c9425c92739036bdce5a4, type: 3}
   splashOutSlow: {fileID: 8300000, guid: 1596f6868848b4e5ba5d42945adb0fc4, type: 3}
   baitSinking: {fileID: 8300000, guid: d1d205707c0a14996b5655c97fb684ba, type: 3}
+  surfaceSplashCooldown: 1
+  surfaceSplashSpeedCutoff: 1.5
   hzUnderwater:
   - {fileID: 8300000, guid: 02bb89b7e308c48b984665de5211250a, type: 3}
   - {fileID: 8300000, guid: 9e5f7ea200402422983cf67e5c2f0ee2, type: 3}
   - {fileID: 8300000, guid: 5bdfcd9776d3f4e9795e721ff14401a0, type: 3}
   hzWaterSurfaceSlow: {fileID: 8300000, guid: 1596f6868848b4e5ba5d42945adb0fc4, type: 3}
   hzWaterSurfaceFast: {fileID: 8300000, guid: 8536ed4c11663444b9a5cbed3d9d72a5, type: 3}
+  hzMoveSpeedCooldown: 2
+  hzMoveSpeedCutoff: 1
   underwaterEQ: {fileID: 24100000, guid: 8a7687e6bdabd4be7a3154891975cdeb, type: 2}
   maxRadioDistance: 1.8
-  waterSurfaceSplashCooldown: 1
-  waterSurfaceSplashMaxSpeed: 1.5
+  boidRespawnCooldown: 10
 --- !u!81 &1831926135
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1998,7 +2001,7 @@ MonoBehaviour:
   attachToTrackerAfter: 2
   morseCodeSound: {fileID: 8300000, guid: b4a09e95fcf1647a2906454d0891377d, type: 3}
   longBeepSound: {fileID: 8300000, guid: 9c5e6bc7179994f06bd5a3bf5409b0dc, type: 3}
-  nosieSound: {fileID: 8300000, guid: 3bf153901587f4f53b7c2b6b247c7593, type: 3}
+  noiseSound: {fileID: 8300000, guid: 6c5357bfab3a14cf5b8d99e6943cc6eb, type: 3}
   aboveWaterSound: {fileID: 8300000, guid: 883a1855188364701a742b26ffa1fd0e, type: 3}
   underwaterEQ: {fileID: 24100000, guid: 8a7687e6bdabd4be7a3154891975cdeb, type: 2}
   maxSpeed: 0.6

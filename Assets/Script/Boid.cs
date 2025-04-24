@@ -89,7 +89,6 @@ public class Boid : MonoBehaviour
         // random initialize velocity
         velocity = new Vector3(Random.value * 2f, Random.value * 2f, Random.value * 0.5f);
 
-        // @todo init audio source, lerp volume 0 to normal in one second.
         audioSource = gameObject.GetComponent<AudioSource>();
         audioSource.clip = morseCodeSound;
 
