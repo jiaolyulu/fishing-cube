@@ -190,7 +190,6 @@ public class SoundPlay : MonoBehaviour
             }
             return;
         }
-        Debug.Log("Player: Move boid object.");
         // otherwise, move it
         morseTransform.GetComponent<Boid>().UpdatePosition();
     }

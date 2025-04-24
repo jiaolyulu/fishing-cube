@@ -107,6 +107,8 @@ public class Boid : MonoBehaviour
         if (isReleased) return;
         if (isAttached)
         {
+            // Debug.Break();
+
             transform.position = tracker.transform.position;
             TryRelease();
             return;
