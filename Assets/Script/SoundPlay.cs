@@ -50,6 +50,7 @@ public class SoundPlay : MonoBehaviour
     private Vector3 lastPosition;
     private Vector3 velocity;
     private float boidReleaseSince = float.PositiveInfinity;
+    private bool shouldSilentAllUnderwater = false;
 
     void Start()
     {
@@ -102,6 +103,14 @@ public class SoundPlay : MonoBehaviour
         morseTransform.GetComponent<Boid>().InitializePosition();
     }
 
+    void SilentUnderwaterAll()
+    {
+        shouldSilentAllUnderwater = true;
+        radioSource.volume = 0f;
+        seafoamSource.volume = 0f;
+        heartbeatSource.volume = 0f;
+    }
+
     void Update()
     {
         // 計算物體的速度
@@ -112,9 +121,14 @@ public class SoundPlay : MonoBehaviour
         isUnderwater = transform.position.y < waterSurfaceTransform.position.y;
         underwaterDepth = Mathf.Clamp01(waterSurfaceTransform.position.y - transform.position.y);
 
-        UpdateRadioSource();
-        UpdateSeafoamSource();
-        UpdateHeartbeatSource();
+        if (!shouldSilentAllUnderwater) 
+        {
+            UpdateRadioSource();
+            UpdateSeafoamSource();
+            UpdateHeartbeatSource();
+        } else {
+            SilentUnderwaterAll();
+        }
         UpdateMorseCodeSource();
         UpdateHorizontalMove();
     }
@@ -131,10 +145,10 @@ public class SoundPlay : MonoBehaviour
         }
         if (!radioSource.isPlaying) radioSource.Play();
 
-        // 根据距离调整 radio 的音量
+        // 根据距离调整 main camera 的音量
         float dist = Vector3.Distance(transform.position, Camera.main.transform.position);
         float distRatio = Mathf.Clamp01(1f - (dist / maxRadioDistance)) * 0.4f;
-        radioSource.volume = distRatio;
+        radioSource.volume = Mathf.Lerp(radioSource.volume, distRatio, 3 * Time.deltaTime); // smoothen the volume change
         radioSource.pitch = 2f - Mathf.Clamp01(underwaterDepth / 2f);
         // Debug.Log("underwater, radio distance: " + dist + ", max: " + maxRadioDistance + ", volume: " + radioSource.volume);
     }
@@ -149,7 +163,7 @@ public class SoundPlay : MonoBehaviour
         {
             float dist = underwaterDepth;
             float distRatio = Mathf.Clamp01(1f - (dist / 1.2f));
-            seafoamSource.volume = 0.3f * distRatio;
+            seafoamSource.volume = Mathf.Lerp(seafoamSource.volume, 0.3f * distRatio, 3 * Time.deltaTime); // smoothen the volume change
             seafoamSource.pitch = 0.3f * distRatio;
         } else {
             seafoamSource.volume = 0.3f;
@@ -166,6 +180,7 @@ public class SoundPlay : MonoBehaviour
             return;
         }
         if (!heartbeatSource.isPlaying) heartbeatSource.Play();
+        heartbeatSource.volume = 1f;
 
         // ???
         // 深度始终保持一致
@@ -195,6 +210,8 @@ public class SoundPlay : MonoBehaviour
         }
         // otherwise, move it
         morseTransform.GetComponent<Boid>().UpdatePosition();
+
+        shouldSilentAllUnderwater = morseTransform.GetComponent<Boid>().isAttached;
     }
 
     // 碰击墙壁

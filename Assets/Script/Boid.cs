@@ -11,10 +11,13 @@ public class Boid : MonoBehaviour
     public float attachToTrackerAfter = 2f; // if tracker is close, after 2 seconds, attach to tracker
 
     [Header("Sound Settings")]
-    public AudioClip morseCodeSound;
-    public AudioClip longBeepSound;
-    public AudioClip noiseSound;
+    public AudioClip[] radioSound; // morse code / radio
+    public AudioClip bellSound; // all env sound silents when tracker is caught
+    public AudioClip noiseSound; // radio noise between channels
+    public AudioClip releaseSound;
     public AudioClip aboveWaterSound;
+
+    private int radioIndex = 0;
 
     [Header("EQ Settings")]
     public AudioMixer underwaterEQ;
@@ -39,13 +42,14 @@ public class Boid : MonoBehaviour
     // 内部计时器：累计与 tracker 保持靠近的时间
     private float nearbySince = float.PositiveInfinity;
     private float attachedSince = float.PositiveInfinity;
-    private bool isAttached = false;
+    public bool isAttached { get; private set; }
     private bool isReleased = false;
 
     private Vector3 velocity = Vector3.zero;
     private Vector3 camPos;
     private Vector3 waterSurfacePos;
     private SoundPlay tracker;
+    private AudioMixerGroup mixerGroup;
 
 
     public void Awake()
@@ -55,23 +59,37 @@ public class Boid : MonoBehaviour
         camPos = Camera.main.transform.position;
         waterSurfacePos = GameObject.FindWithTag("WaterSurface").transform.position;
         tracker = GameObject.FindWithTag("Player").GetComponent<SoundPlay>();
+        isAttached = false;
 
         if (tracker == null) { Debug.LogError("Tracker is not tagged as player. Fix it in editor please."); }
     }
 
     void SetUpAudioMixer()
     {
-        audioSource = gameObject.GetComponent<AudioSource>();
-        audioSource.clip = morseCodeSound;
+        PickRadioClip();
 
         AudioMixerGroup[] groups = underwaterEQ.FindMatchingGroups("EQ-Underwater");
 
         if (groups.Length > 0)
         {
-            audioSource.outputAudioMixerGroup = groups[0];
+            mixerGroup = groups[0];
+            audioSource.outputAudioMixerGroup = mixerGroup;
             return;
         }
         Debug.LogError("Audio mixer underwater is not found. Did you change the name?");
+    }
+
+    void PickRadioClip()
+    {
+        audioSource = gameObject.GetComponent<AudioSource>();
+        audioSource.clip = radioSound[radioIndex % radioSound.Length];
+        radioIndex++;
+    }
+
+    float GetDepthUnderwater()
+    {
+        float depth = waterSurfacePos.y-transform.position.y;
+        return depth < 0f ? 0f : depth;
     }
 
     public void InitializePosition()
@@ -89,8 +107,7 @@ public class Boid : MonoBehaviour
         // random initialize velocity
         velocity = new Vector3(Random.value * 2f, Random.value * 2f, Random.value * 0.5f);
 
-        audioSource = gameObject.GetComponent<AudioSource>();
-        audioSource.clip = morseCodeSound;
+        PickRadioClip();
 
         audioSource.Stop();
 
@@ -124,7 +141,11 @@ public class Boid : MonoBehaviour
 
         if (tracker.isUnderwater)
         {
-            if (!audioSource.isPlaying) audioSource.Play();
+            if (!audioSource.isPlaying) 
+            {
+                PickRadioClip();
+                audioSource.Play();
+            }
         } else {
             if (!isAttached) audioSource.Stop();
         }
@@ -191,6 +212,22 @@ public class Boid : MonoBehaviour
         Vector3 nextPos = transform.position + velocity * Time.deltaTime;
         nextPos.y = Mathf.Clamp(nextPos.y, camPos.y+spawnVerticalMargin, waterSurfacePos.y-spawnVerticalMargin);
         transform.position = nextPos;
+
+        UpdateMixerPitch();
+    }
+
+    void UpdateMixerPitch()
+    {
+        audioSource.outputAudioMixerGroup = mixerGroup;
+
+        if (tracker.isUnderwater)
+        {
+            // between 0.8~0.9,
+            float ratio = Mathf.Clamp01(GetDepthUnderwater() / (waterSurfacePos.y - camPos.y)); // [0,1]
+            mixerGroup.audioMixer.SetFloat("Pitch", Mathf.Lerp(0.8f, 0.9f, ratio));
+        } else {
+            audioSource.outputAudioMixerGroup = null; // disable underwater mixer
+        }
     }
 
     void TryRelease()
@@ -231,7 +268,7 @@ public class Boid : MonoBehaviour
 
         // attach to tracker
         transform.position = tracker.transform.position;
-        audioSource.clip = longBeepSound;
+        audioSource.clip = bellSound;        
         isAttached = true;
 
         // Debug.Log("Boid is attached: " + isAttached + ", is released: " + isReleased);
@@ -248,7 +285,7 @@ public class Boid : MonoBehaviour
 
         if (tracker.isUnderwater)
         {
-            tracker.PlayOneShot(noiseSound);
+            tracker.PlayOneShot(releaseSound);
         }
         else 
         {

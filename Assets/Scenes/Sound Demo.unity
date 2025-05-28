@@ -150,6 +150,7 @@ Transform:
   m_Children:
   - {fileID: 1221887415}
   - {fileID: 909644832}
+  - {fileID: 1286178340}
   - {fileID: 2120347790}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1002,6 +1003,135 @@ Transform:
   m_Children: []
   m_Father: {fileID: 220581176}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1286178339
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1286178340}
+  - component: {fileID: 1286178341}
+  m_Layer: 0
+  m_Name: weather
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1286178340
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1286178339}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2.1, z: 0}
+  m_LocalScale: {x: 2.5, y: 1, z: 2.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 220581176}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1286178341
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1286178339}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 543a6c33051bf4976b7dc04ed61afe14, type: 3}
+  m_Resource: {fileID: 8300000, guid: 543a6c33051bf4976b7dc04ed61afe14, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1341368114
 GameObject:
   m_ObjectHideFlags: 0
@@ -1737,7 +1867,7 @@ MonoBehaviour:
   hzMoveSpeedCooldown: 2
   hzMoveSpeedCutoff: 1
   underwaterEQ: {fileID: 24100000, guid: 8a7687e6bdabd4be7a3154891975cdeb, type: 2}
-  maxRadioDistance: 1.8
+  maxRadioDistance: 1.2
   boidRespawnCooldown: 10
 --- !u!81 &1831926135
 AudioListener:
@@ -1977,11 +2107,16 @@ MonoBehaviour:
   spawnHorizontalRange: {x: 1, y: 2}
   spawnVerticalMargin: 0.3
   attachToTrackerAfter: 2
-  morseCodeSound: {fileID: 8300000, guid: b4a09e95fcf1647a2906454d0891377d, type: 3}
-  longBeepSound: {fileID: 8300000, guid: 9c5e6bc7179994f06bd5a3bf5409b0dc, type: 3}
+  radioSound:
+  - {fileID: 8300000, guid: b4a09e95fcf1647a2906454d0891377d, type: 3}
+  - {fileID: 8300000, guid: d2649d7d2443b4820b322952834fc0a4, type: 3}
+  - {fileID: 8300000, guid: 2f1ab7c148d1848a6aa150032b594a77, type: 3}
+  - {fileID: 8300000, guid: 57f235eac488a47628a60d7a315d7d42, type: 3}
+  bellSound: {fileID: 8300000, guid: b7fa595f1d6a84b578a9b62956e026c1, type: 3}
   noiseSound: {fileID: 8300000, guid: 6c5357bfab3a14cf5b8d99e6943cc6eb, type: 3}
+  releaseSound: {fileID: 8300000, guid: 35336d416b4e54dbaa9af1e1fff47420, type: 3}
   aboveWaterSound: {fileID: 8300000, guid: 883a1855188364701a742b26ffa1fd0e, type: 3}
-  underwaterEQ: {fileID: 24100000, guid: 8a7687e6bdabd4be7a3154891975cdeb, type: 2}
+  underwaterEQ: {fileID: 24100000, guid: b7c9109e895584a9898d142ae8719cd1, type: 2}
   maxSpeed: 0.6
   maxForce: 1
   attractionStrength: 3
@@ -1991,8 +2126,8 @@ MonoBehaviour:
   attractionDistance: 1
   attachDistance: 0.2
   attachDelay: 1
-  releaseDelay: 10
-  respawnDelay: 3
+  releaseDelay: 12
+  respawnDelay: 5
 --- !u!82 &2120347792
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2008,14 +2143,14 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 0.6
   m_Pitch: 1
-  Loop: 1
+  Loop: 0
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
   MinDistance: 0
-  MaxDistance: 2
+  MaxDistance: 3
   Pan2D: 0
   rolloffMode: 1
   BypassEffects: 0
