@@ -14,8 +14,9 @@ public class Boid : MonoBehaviour
     public AudioClip[] radioSound; // morse code / radio
     public AudioClip bellSound; // all env sound silents when tracker is caught
     public AudioClip noiseSound; // radio noise between channels
-    public AudioClip releaseSound;
-    public AudioClip aboveWaterSound;
+    public AudioClip releaseUnderwaterSound;
+
+    public DogSound dog; // play when tracker is released above water
 
     private int radioIndex = 0;
 
@@ -285,11 +286,11 @@ public class Boid : MonoBehaviour
 
         if (tracker.isUnderwater)
         {
-            tracker.PlayOneShot(releaseSound);
+            tracker.PlayOneShot(releaseUnderwaterSound);
         }
         else 
         {
-            tracker.PlayOneShot(aboveWaterSound);
+            dog.Bark();
         }
 
         attachedSince = float.PositiveInfinity;
