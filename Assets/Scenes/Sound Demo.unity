@@ -298,7 +298,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 155a1d90745e14539bc72a68d11cc04d, type: 3}
   m_Resource: {fileID: 8300000, guid: 155a1d90745e14539bc72a68d11cc04d, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.05
+  m_Volume: 0.1
   m_Pitch: -2
   Loop: 1
   Mute: 0
@@ -342,7 +342,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.4
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -908,7 +908,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: d0ca8b8ba1a23524eb39a45849b32de5, type: 3}
   m_Resource: {fileID: 8300000, guid: d0ca8b8ba1a23524eb39a45849b32de5, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.8
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -917,7 +917,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 20
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -2057,8 +2057,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   splashIn: {fileID: 8300000, guid: ccd41ceba91034804909734e79461ae2, type: 3}
   splashInSlow: {fileID: 8300000, guid: 2106ef02586c9425c92739036bdce5a4, type: 3}
-  splashOut: {fileID: 8300000, guid: 2106ef02586c9425c92739036bdce5a4, type: 3}
-  splashOutSlow: {fileID: 8300000, guid: 1596f6868848b4e5ba5d42945adb0fc4, type: 3}
+  splashOut: {fileID: 8300000, guid: 1596f6868848b4e5ba5d42945adb0fc4, type: 3}
+  splashOutSlow: {fileID: 8300000, guid: 02bb89b7e308c48b984665de5211250a, type: 3}
   baitSinking: {fileID: 8300000, guid: d1d205707c0a14996b5655c97fb684ba, type: 3}
   surfaceSplashCooldown: 1
   surfaceSplashSpeedCutoff: 1.5
