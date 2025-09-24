@@ -309,6 +309,8 @@ public class ColorAreaTracker : MonoBehaviour
                 {
                     int index = y * width + x;
 
+                    if (index >= pixelData.Length) continue;
+
                     if (!visited[index] && IsColoredPixel(pixelData[index], currentColor))
                     {
                         // Perform flood-fill to find the full area size

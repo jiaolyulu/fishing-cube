@@ -2205,7 +2205,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2069792160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2219,7 +2219,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   webCamTexture: {fileID: 0}
-  preferredDevice: USB Camera
+  preferredDevice: "FaceTime\u9AD8\u6E05\u76F8\u673A\uFF08\u5185\u5EFA\uFF09"
   requestedWidth: 480
   requestedHeight: 480
   requestedFPS: 30
@@ -2229,7 +2229,7 @@ MonoBehaviour:
   colorThreshold: 53
   colorDominanceThreshold: 52
   blackThreshold: 30
-  trackingColor: 0
+  trackingColor: 2
   targetObject: {fileID: 1831926131}
   movementSpeed: 4
   screenBounds: {x: 1, y: 1}
