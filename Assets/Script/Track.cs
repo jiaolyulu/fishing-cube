@@ -177,8 +177,15 @@ public class ColorAreaTracker : MonoBehaviour
     {
         isProcessing = true;
 
+        int currentExpectedSize = webCamTexture.width * webCamTexture.height;
+        if (pixelData == null || pixelData.Length != currentExpectedSize)
+        {
+            pixelData = new Color32[currentExpectedSize];
+            Debug.Log($"Pixel data array re-initialized to: {currentExpectedSize} ({webCamTexture.width}x{webCamTexture.height})");
+        }
+
         // Get the current frame's pixel data
-        webCamTexture.GetPixels32 (pixelData);
+        webCamTexture.GetPixels32(pixelData);
 
         // Wait for the end of frame to free up main thread
         yield return new WaitForEndOfFrame();
@@ -328,6 +335,7 @@ public class ColorAreaTracker : MonoBehaviour
                 }
             }
         }
+        Debug.Log("color area detected maxSize: " + maxSize);
 
         // If we found a valid colored area
         if (maxSize >= minAreaSize)
