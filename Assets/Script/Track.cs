@@ -335,7 +335,6 @@ public class ColorAreaTracker : MonoBehaviour
                 }
             }
         }
-        Debug.Log("color area detected maxSize: " + maxSize);
 
         // If we found a valid colored area
         if (maxSize >= minAreaSize)
