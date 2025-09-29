@@ -2219,7 +2219,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   webCamTexture: {fileID: 0}
-  preferredDevice: "FaceTime\u9AD8\u6E05\u76F8\u673A\uFF08\u5185\u5EFA\uFF09"
+  preferredDevice: Integrated Webcam
   requestedWidth: 480
   requestedHeight: 480
   requestedFPS: 30
