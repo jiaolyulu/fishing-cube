@@ -2220,8 +2220,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   webCamTexture: {fileID: 0}
   preferredDevice: Integrated Webcam
-  requestedWidth: 480
-  requestedHeight: 480
+  requestedWidth: 800
+  requestedHeight: 800
   requestedFPS: 30
   hasTarget: 1
   minAreaSize: 100
@@ -2244,8 +2244,8 @@ MonoBehaviour:
   minMovementThreshold: 0.01
   positionSmoothing: 0.5
   areaSizeSmoothing: 0.5
-  yOffsetCompensation: 0.3
-  xzOffsetCompensation: 0
+  yOffsetCompensation: 0.5
+  xzOffsetCompensation: 0.8
   showDebugInfo: 1
 --- !u!4 &2069792161
 Transform:
@@ -2313,9 +2313,6 @@ MonoBehaviour:
   attachToTrackerAfter: 2
   radioSound:
   - {fileID: 8300000, guid: b4a09e95fcf1647a2906454d0891377d, type: 3}
-  - {fileID: 8300000, guid: d2649d7d2443b4820b322952834fc0a4, type: 3}
-  - {fileID: 8300000, guid: 2f1ab7c148d1848a6aa150032b594a77, type: 3}
-  - {fileID: 8300000, guid: 57f235eac488a47628a60d7a315d7d42, type: 3}
   bellSound: {fileID: 8300000, guid: b7fa595f1d6a84b578a9b62956e026c1, type: 3}
   noiseSound: {fileID: 8300000, guid: 6c5357bfab3a14cf5b8d99e6943cc6eb, type: 3}
   releaseUnderwaterSound: {fileID: 8300000, guid: 5536d0dfd10234298bcea6e6a17b7660, type: 3}
@@ -2331,7 +2328,7 @@ MonoBehaviour:
   attachDistance: 0.2
   attachDelay: 1
   releaseDelay: 12
-  respawnDelay: 5
+  respawnDelay: 30
 --- !u!82 &2120347792
 AudioSource:
   m_ObjectHideFlags: 0

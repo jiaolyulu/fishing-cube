@@ -393,9 +393,7 @@ public class ColorAreaTracker : MonoBehaviour
         if (targetObject != null)
         {
             float surfaceYFraction = (surfaceY - minY) / (maxY - minY);
-            float
-                yPosFactor,
-                yPosition;
+            float yPosFactor, yPosition;
 
             if (smoothedAreaSize <= areaUnit * surfaceAreaPixels)
             {
@@ -420,16 +418,9 @@ public class ColorAreaTracker : MonoBehaviour
             }
 
             // Map the smoothed position (0-1) to our world space bounds
-            Vector3 targetPosition =
-                new Vector3(Mathf
-                        .Lerp(screenBounds.x,
-                        -screenBounds.x,
-                        0.5f + (smoothedPosition.x - 0.5f) * (1.0f + xzOffsetCompensation * yPosFactor)),
-                    yPosition,
-                    Mathf
-                        .Lerp(-screenBounds.y,
-                        screenBounds.y,
-                        0.5f + (smoothedPosition.y - 0.5f) * (1.0f + xzOffsetCompensation * yPosFactor)));
+            float xPosition = Mathf.Lerp(screenBounds.x, -screenBounds.x, 0.5f + (smoothedPosition.x - 0.5f) * (1.0f + xzOffsetCompensation * yPosFactor));
+            float zPosition = Mathf.Lerp(-screenBounds.y, screenBounds.y, 0.5f + (smoothedPosition.y - 0.5f) * (1.0f + xzOffsetCompensation * yPosFactor));
+            Vector3 targetPosition = new Vector3(xPosition, yPosition, zPosition);
 
             // Smoothly move the object towards the target position
             targetObject.position = Vector3.Lerp(targetObject.position, targetPosition, movementSpeed * Time.deltaTime);
