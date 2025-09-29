@@ -2324,11 +2324,11 @@ MonoBehaviour:
   repulsionDistance: 1
   repulsionStrength: 1
   tangentStrength: 0.5
-  attractionDistance: 1
-  attachDistance: 0.2
-  attachDelay: 1
-  releaseDelay: 12
-  respawnDelay: 30
+  attractionDistance: 0.8
+  attachDistance: 0.25
+  attachDelay: 1.5
+  releaseDelay: 4
+  respawnDelay: 60
 --- !u!82 &2120347792
 AudioSource:
   m_ObjectHideFlags: 0
