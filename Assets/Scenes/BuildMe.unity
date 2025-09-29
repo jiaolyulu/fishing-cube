@@ -2324,7 +2324,7 @@ MonoBehaviour:
   repulsionDistance: 1
   repulsionStrength: 1
   tangentStrength: 0.5
-  attractionDistance: 0.8
+  attractionDistance: 0.85
   attachDistance: 0.25
   attachDelay: 1.5
   releaseDelay: 4
